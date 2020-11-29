@@ -1,3 +1,4 @@
+attrs==20.3.0
 bleach==3.2.1
 certifi==2020.11.8
 cffi==1.14.4
@@ -6,16 +7,21 @@ colorama==0.4.4
 cryptography==3.2.1
 docutils==0.16
 idna==2.10
+iniconfig==1.1.1
 jeepney==0.6.0
 keyring==21.5.0
 lxml==4.6.2
+marketools==0.0.8
 numpy==1.19.4
 packaging==20.7
 pandas==1.1.4
 pkginfo==1.6.1
+pluggy==0.13.1
+py==1.9.0
 pycparser==2.20
 Pygments==2.7.2
 pyparsing==2.4.7
+pytest==6.1.2
 python-dateutil==2.8.1
 pytz==2020.4
 readme-renderer==28.0
@@ -23,8 +29,8 @@ requests==2.25.0
 requests-toolbelt==0.9.1
 rfc3986==1.4.0
 SecretStorage==3.3.0
-setuptool==0.0.1
 six==1.15.0
+toml==0.10.2
 tqdm==4.54.0
 twine==3.2.0
 urllib3==1.26.2
