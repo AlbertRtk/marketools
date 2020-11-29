@@ -4,7 +4,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="setuptool",
+    name="marketools",
     version="0.0.1",
     author="Albert Ratajczak",
     author_email="ratajczakalbert@gmail.com",
