@@ -1,2 +1,5 @@
 venv
 .stock_market_data
+/dist
+/build
+/*.egg-info
