@@ -1,7 +1,6 @@
 from .stqscraper import DATA_DIR
 from .stqscraper.fundamentals import Fundamentals
 from .stqscraper.stockquotes import StockQuotes
-from .stock_index import wig20, mwig40
 import pandas as pd
 import os
 

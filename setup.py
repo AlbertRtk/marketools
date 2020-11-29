@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="marketools",
-    version="0.0.2",
+    version="0.0.7",
     author="Albert Ratajczak",
     author_email="ratajczakalbert@gmail.com",
     description="Tools for stock market analysis.",
@@ -19,4 +19,9 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     python_requires='>=3.8',
+    install_requires=[
+        'pandas>=1.1.4',
+        'requests>=2.25.0',
+        'lxml>=4.6.2'
+    ],
 )

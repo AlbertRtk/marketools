@@ -1,7 +1,7 @@
 import math
 import pandas as pd
-from wallet.wallet import calculate_investment_value
-from extra_print import print_green, print_red, \
+from marketools.wallet import calculate_investment_value
+from marketools.extra_print import print_green, print_red, \
     determine_print_color_from_prices, info_str
 
 
