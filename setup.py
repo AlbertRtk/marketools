@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="marketools",
-    version="0.0.1",
+    version="0.0.2",
     author="Albert Ratajczak",
     author_email="ratajczakalbert@gmail.com",
     description="Tools for stock market analysis.",
