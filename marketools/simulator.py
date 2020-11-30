@@ -1,13 +1,13 @@
 import math
 import pandas as pd
-from marketools.wallet import calculate_investment_value
+from marketools.wallet import calculate_investment_value, Wallet
 from marketools.extra_print import print_green, print_red, \
     determine_print_color_from_prices, info_str
 
 
-def simulator(time_range: pandas.DatetimeIndex,
+def simulator(time_range: pd.DatetimeIndex,
               traded_stocks: dict, 
-              wallet: marketools.wallet.Wallet, 
+              wallet: Wallet, 
               max_positions: int = 5, 
               take_profit: float = 0.0, 
               stop_loss: float = 0.0, 

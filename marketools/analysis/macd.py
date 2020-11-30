@@ -1,7 +1,7 @@
 import pandas as pd
 
 
-def macd(prices: pandas.DataFrame, 
+def macd(prices: pd.DataFrame, 
          mid_const: int = 12, 
          long_const: int = 26, 
          signal_const: int = 9):
