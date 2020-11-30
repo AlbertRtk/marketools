@@ -3,7 +3,7 @@ import pandas as pd
 
 def rsi(prices: pd.DataFrame, alpha: float=1/14):
     """
-    Clculates Relative Strength Index (RSI).
+    Calculates Relative Strength Index (RSI).
 
     :prices: pandas.DataFrame with 'Close' column containing closing prices of stock
     :alpha: smoothing factor, 0 < alpha <= 1
