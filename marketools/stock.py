@@ -21,16 +21,6 @@ class Stock:
     """
 
     def __init__(self, ticker: str):
-        """
-        Constructs stock object.
-
-        Parameters
-        ----------
-        ticker : str
-            ticker of a stock; country code needs to be append after a dot for 
-            not Polish stocks, e.g, 'AAPL.US'
-        """
-
         self.ticker = ticker
         self._ohlc = StockQuotes(ticker)
         self._fundamentals = Fundamentals(ticker)
@@ -113,7 +103,7 @@ class Stock:
 
     @property
     def stooq_plot_link(self):
-        """Returns link Stooq page with HTML chart with OHLC data."""
+        """Returns link to Stooq page with HTML chart with OHLC data."""
         link = f'https://stooq.pl/q/a2/?s={self.ticker}'
         return link
 
