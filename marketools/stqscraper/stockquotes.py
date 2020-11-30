@@ -8,11 +8,17 @@ from datetime import datetime, timedelta
 
 def read_ohlcv_from_csv(file_path):
     """
-    Reads OHLCV data from CSV file.
+    Reads and returns OHLCV data from CSV file.
 
-    :param file_path: path to CSV file with OHLCV data
-    :return: Pandas DataFrame with OHLCV data
+    Parameters
+    ----------
+    file_path : str or os.path
+        path to CSV file with OHLCV data
+    Returns
+    -------
+    pandas.DataFrame
     """
+    
     output = pd.read_csv(file_path, 
                          index_col='Date',
                          parse_dates=['Date'],
