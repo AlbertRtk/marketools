@@ -7,6 +7,10 @@ import csv
 
 
 class Fundamentals(dict):
+    """
+    Class Fundamentals
+    """
+
     def __init__(self, ticker):
         super().__init__()
         self.ticker = ticker
