@@ -32,10 +32,14 @@ Create Stock instance for selected ticker, here [PKN](https://stooq.com/q/?s=pkn
 ```python
 pkn = Stock('PKN')
 ```
+For not Polish stocks, you need to append country code to the ticker (after a dot), e.g.,
+```python
+apple = Stock('AAPL.US')
+```
 Get and print OHLC (open-high-low-close) data from the last 5 days
 ```python
 pkn_ohlc = pkn.ohlc  # returns pandas.DataFrame
-print(pkn.ohlc.tail(5))
+print(pkn_ohlc.tail(5))
 ```
 Print available fundamental information
 ```python
