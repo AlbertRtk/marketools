@@ -23,6 +23,9 @@ or
 git clone https://github.com/AlbertRtk/marketools.git
 ```
 
+## Documentation
+* [Documentation](/docs/html/marketools/index.html)
+
 ## Example
 Import Stock class
 ```python
