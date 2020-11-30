@@ -3,12 +3,20 @@ import pandas as pd
 
 def rsi(prices: pd.DataFrame, alpha: float=1/14):
     """
-    Clculates Relative Strength Index (RSI).
+    Calculates Relative Strength Index (RSI).
 
-    :prices: pandas.DataFrame with 'Close' column containing closing prices of stock
-    :alpha: smoothing factor, 0 < alpha <= 1
-    :return: pandas.Series with calculated RSI
+    Parameters
+    ----------
+    prices : pandas.DataFrame 
+        DataFrame with 'Close' column containing closing prices of stock
+    alpha : float
+        smoothing factor, 0 < alpha <= 1
+
+    Returns
+    -------
+    pandas.Series
     """
+    
     price_now = prices['Close']
     price_prev = prices['Close'].shift(periods=1, fill_value=0)  # assign to each day price from the previous day
 
@@ -29,16 +37,28 @@ def rsi(prices: pd.DataFrame, alpha: float=1/14):
     return output_rsi
 
 
-def rsi_cross_signals(rsi_values: pd.DataFrame, cross_line: float, direction: str='onrise'):
+def rsi_cross_signals(rsi_values: pd.DataFrame, 
+                      cross_line: float, 
+                      direction: str='onrise'):
     """
-    Calculates buy/sell signals for given RSI signal line.
+    Calculates buy/sell signals for given RSI signal line. Returns table with 
+    True values for days when signal appears.
 
-    :rsi_values: pandas.DataFrame with RSI column
-    :cross_line: signal threshold line, when signal line crosses this line signal is set
-    :direction: direction the signal line should cross threshold line 
+    Parameters
+    ----------
+    rsi_values : pandas.DataFrame 
+        DataFrame with RSI column
+    cross_line : float
+        signal threshold line, when signal line crosses this line signal is set
+    direction : str
+        direction the signal line should cross threshold line 
         ('onrise' - signal increasing [default], 'onfall' - signal decreasing)
-    :return: pandas.Series with with True values for days when signal appears
+    
+    Returns
+    -------
+    pandas.Series
     """
+
     if not (0 < cross_line < 100):
         raise ValueError('cross_line takes values from 0 to 100')
 

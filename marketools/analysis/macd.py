@@ -1,16 +1,29 @@
 import pandas as pd
 
 
-def macd(prices: pd.DataFrame, mid_const: int=12, long_const: int=26, signal_const: int=9):
+def macd(prices: pd.DataFrame, 
+         mid_const: int = 12, 
+         long_const: int = 26, 
+         signal_const: int = 9):
     """
     Returns Pandas Dataframe with MACD, Signal, and Histogram.
 
-    :param prices:
-    :param mid_const:
-    :param long_const:
-    :param signal_const:
-    :returns:
+    Parameters
+    ----------
+    prices : pandas.DataFrame
+        DataFrame with OHLC data (must have column 'Close')
+    mid_const : int
+        period for fast exponential moving average
+    long_const : int
+        period for slow exponential moving average
+    signal_const : int
+        period for signal exponential moving average
+        
+    Returns
+    -------
+    pandas.DataFrame
     """
+
     price = prices['Close']
     output = pd.DataFrame(columns=['MACD', 'Signal', 'Histogram'])
 

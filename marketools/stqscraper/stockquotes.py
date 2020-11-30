@@ -8,11 +8,17 @@ from datetime import datetime, timedelta
 
 def read_ohlcv_from_csv(file_path):
     """
-    Reads OHLCV data from CSV file.
+    Reads and returns OHLCV data from CSV file.
 
-    :param file_path: path to CSV file with OHLCV data
-    :return: Pandas DataFrame with OHLCV data
+    Parameters
+    ----------
+    file_path : str or os.path
+        path to CSV file with OHLCV data
+    Returns
+    -------
+    pandas.DataFrame
     """
+    
     output = pd.read_csv(file_path, 
                          index_col='Date',
                          parse_dates=['Date'],
@@ -53,23 +59,23 @@ class StockQuotes():
         update_required = True  # assuming that update will be required
         output = pd.DataFrame()
 
-        """ time info """
+        # time info 
         time_now = datetime.now()
         weekday_now = datetime.weekday(time_now)
         is_weekend = True if weekday_now in (5, 6) else False
 
-        """ calculate expected date for last OHLC data, consider only weekdays from Mo-Fr,
-            assume that last update was one day earlier """
+        # calculate expected date for last OHLC data, consider only weekdays 
+        # from Mo-Fr, assume that last update was one day earlier 
         delta_days = (weekday_now - 4) if is_weekend else 0
         expected_ohlc_time = time_now - timedelta(days=delta_days)
         last_ohlc_time = expected_ohlc_time - timedelta(days=1)
 
-        """ File with data for ticker exists """
+        # file with data for ticker exists
         if path.exists(self.csv_file_path):
             timestamp_now = datetime.timestamp(time_now)
             timestamp_up = path.getatime(self.csv_file_path)  # CSV file modification time
 
-            """ CSV updated within last 24 hours or it is weekend (no new data) """
+            # CSV updated within last 24 hours or it is weekend (no new data) 
             if (timestamp_now - timestamp_up < 24 * 3600) or is_weekend:
                 output = self.read_csv_file()
                 last_ohlc_time = output.iloc[-1].name
@@ -78,15 +84,15 @@ class StockQuotes():
                     update_required = False
 
         if update_required:
-            """ update CSV file and read data """
+            # update CSV file and read data 
             new_output = self.download_ohlc_from_stooq()
 
             if not new_output.empty:
-                """ Updated data downloaded - save to CSV and update output """
+                # Updated data downloaded - save to CSV and update output 
                 new_output.to_csv(self.csv_file_path)
                 output = new_output
             else:
-                """ Update error (Stooq: Exceeded the daily hits limit) """
+                # Update error (Stooq: Exceeded the daily hits limit) 
                 pass
     
         if not output.empty:

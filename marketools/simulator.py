@@ -1,28 +1,45 @@
 import math
 import pandas as pd
-from marketools.wallet import calculate_investment_value
+from marketools.wallet import calculate_investment_value, Wallet
 from marketools.extra_print import print_green, print_red, \
     determine_print_color_from_prices, info_str
 
 
-def simulator(time_range, traded_stocks, wallet, max_positions=5, take_profit=0, stop_loss=0, auto_traiding=False):
+def simulator(time_range: pd.DatetimeIndex,
+              traded_stocks: dict, 
+              wallet: Wallet, 
+              max_positions: int = 5, 
+              take_profit: float = 0.0, 
+              stop_loss: float = 0.0, 
+              auto_trading: bool = False):
     """
-    This function returns decorator for a stock market strategy.
+    This function returns decorator for a stock market strategy, that returns 
+    change of wallet value over given time_range (in pandas.DataFrame)
 
-    :param time_range: an array with traiding days only (no Saturdays, Sundays, holidays)
-    :param traded_stocks: a dictionary with stocks.stock.Stock instances
-    :param wallet: wallet.wallet.Wallet for traiding 
-    :param max_positions: maximum number of different stocks in the wallet
-    :param take_profit: if the price of a stock increases by this fraction, it will be sold;
+    Parameters
+    ----------
+    time_range : pandas.DatetimeIndex
+        an array with trading days only (no Saturdays, Sundays, holidays)
+    traded_stocks : dict
+        a dictionary with stocks.stock.Stock instances
+    wallet : marketools.wallet.Wallet
+        Wallet for trading 
+    max_positions : int 
+        maximum number of different stocks in the wallet
+    take_profit : float
+        if the price of a stock increases by this fraction, it will be sold;
         if equal 0 - take profit is deactivated (default)
-    :param stop_loss: if the price of a stock decreases by this fraction (comparing to the 
-        purchase price), it will be sold; if equal 0 - stop loss is deactivated (default)
-    :param moving_stop_loss: if the price of a stock in a one day decreases by this fraction, 
-        it will be sold; if equal 0 - stop loss is deactivated (default)
-    :param auto_traiding: boolean, if True selling immediately when stop loss / take profit 
-        is reached is simulated
-    :return: decorator for a stock market strategy that returns change of wallet value 
-        over given time_range
+    stop_loss : float
+        if the price of a stock decreases by this fraction (comparing to the 
+        purchase price), it will be sold; 
+        if equal 0 - stop loss is deactivated (default)
+    auto_trading : boolean
+        if True selling immediately when stop loss / take profit is reached is 
+        simulated
+
+    Returns
+    -------
+    decorator that returns pandas.DataFrame
     """
 
     def strategy_wrapper(func):
@@ -52,7 +69,7 @@ def simulator(time_range, traded_stocks, wallet, max_positions=5, take_profit=0,
                                     stocks_to_sell.remove(tck)
 
                 # Sell selected day before. List to set, we dont care here about the order.
-                # Set will remove duplcates.
+                # Set will remove duplicates.
                 for tck in set(stocks_to_sell):
                     if wallet.get_volume_of_stocks(tck):
                         price = traded_stocks[tck].ohlc['Open'].get(day, None)
@@ -64,9 +81,9 @@ def simulator(time_range, traded_stocks, wallet, max_positions=5, take_profit=0,
                 # call decorated function - strategy function
                 stocks_to_buy, stocks_to_sell = func(day=day, traded_stocks=traded_stocks, *args, **kwargs)
 
-                # if auto traiding is active, check if price of any stock in the wallet crossed
+                # if auto trading is active, check if price of any stock in the wallet crossed
                 # take proffit or stop loss price; if yes then sell it immediately 
-                if auto_traiding:
+                if auto_trading:
                     for tck in wallet.list_stocks().copy():
 
                         price_max = traded_stocks[tck].ohlc['High'].get(day, None)
@@ -95,8 +112,8 @@ def simulator(time_range, traded_stocks, wallet, max_positions=5, take_profit=0,
                     if price:
                         wallet.update_price(tck, price)
 
-                    # if auto traiding is not active, then take profit / stop loss the next day
-                    if not auto_traiding:
+                    # if auto trading is not active, then take profit / stop loss the next day
+                    if not auto_trading:
 
                         # take profit the next day
                         if take_profit and wallet.change(tck) > take_profit:
@@ -123,7 +140,7 @@ if None:
     """
     This code should not be called - this is just a template function for tested strategy.
     """
-    @simulator(TRAIDING_DAYS, stocks_data, MY_WALLET, TAKE_PROFIT, STOP_LOSS)
+    @simulator(TRADING_DAYS, stocks_data, MY_WALLET, TAKE_PROFIT, STOP_LOSS)
     def __strategy_template(arguments, *args, **kwargs):
         """
         :param arguments: any arguments needed for the strategy can be passed
