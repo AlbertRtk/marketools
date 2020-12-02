@@ -41,12 +41,12 @@ def test_weighted_moving_average(NineDayPrices, window, expected):
     assert len(expected) == len(output_arr)
 
 
-@pytest.mark.parametrize("alpha,expected", [
-    (2/3, np.array([3.37, 3.93, 4.043333333, 3.947777778, 3.842592593, 3.787530864, 3.695843621, 3.731947874, 3.830649291])),
-    (1/2, np.array([3.37, 3.79, 3.945, 3.9225, 3.85625, 3.808125, 3.7290625, 3.73953125, 3.809765625])),
+@pytest.mark.parametrize("span,expected", [
+    (2, np.array([3.37, 3.93, 4.043333333, 3.947777778, 3.842592593, 3.787530864, 3.695843621, 3.731947874, 3.830649291])),
+    (3, np.array([3.37, 3.79, 3.945, 3.9225, 3.85625, 3.808125, 3.7290625, 3.73953125, 3.809765625])),
 ])
-def test_exponential_moving_average(NineDayPrices, alpha, expected):
-    output = exponential_moving_average(NineDayPrices, alpha=alpha)
+def test_exponential_moving_average(NineDayPrices, span, expected):
+    output = exponential_moving_average(NineDayPrices, span=span)
     output.dropna(inplace=True)
     output_arr = output.to_numpy()
 

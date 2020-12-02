@@ -63,7 +63,7 @@ def weighted_moving_average(ohlc: pd.DataFrame,
 
 
 def exponential_moving_average(ohlc: pd.DataFrame,
-                               alpha: int,
+                               span: float,
                                price: str = 'Close'):
     """
     Returns Pandas Series with the Exponential Moving Average for the indicated price.
@@ -72,8 +72,8 @@ def exponential_moving_average(ohlc: pd.DataFrame,
     ----------
     ohlc : pandas.DataFrame
         DataFrame with OHLC data
-    alpha : float
-        smoothing factor, 0 < alpha <= 1
+    span : float
+        specify decay in terms of span, alpha = 2/(span + 1) for span >= 1
     price : str
         The price on which EMA will be calculated (Close by default)
 
@@ -83,7 +83,7 @@ def exponential_moving_average(ohlc: pd.DataFrame,
     """
 
     # implement exponential moving average
-    output = ohlc[price].ewm(alpha=alpha, adjust=False).mean()
+    output = ohlc[price].ewm(span=span, adjust=False).mean()
 
     return output
 
