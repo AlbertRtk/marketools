@@ -1,5 +1,5 @@
 import pytest
-from marketools.analysis.moving_average import simple_moving_average, weighted_moving_average
+from marketools.analysis.moving_average import simple_moving_average, weighted_moving_average, exponential_moving_average
 import pandas as pd
 import numpy as np
 
@@ -18,14 +18,12 @@ def NineDayPrices():
 def test_simple_moving_average(NineDayPrices, window, min_periods, expected):
     output = simple_moving_average(NineDayPrices, window=window, min_periods=min_periods)
     output.dropna(inplace=True)
-    output_rows = np.array([])
-    for index, row in output.iterrows():
-        output_rows = np.append(output_rows, row['Close'])
+    output_arr = output.to_numpy()
 
     for i in range(len(expected)):
-        assert pytest.approx(expected[i], output_rows[i])
+        assert pytest.approx(expected[i], output_arr[i])
 
-    assert len(expected) == len(output_rows)
+    assert len(expected) == len(output_arr)
 
 
 @pytest.mark.parametrize("window,expected", [
@@ -35,11 +33,24 @@ def test_simple_moving_average(NineDayPrices, window, min_periods, expected):
 def test_weighted_moving_average(NineDayPrices, window, expected):
     output = weighted_moving_average(NineDayPrices, window=window)
     output.dropna(inplace=True)
-    output_rows = np.array([])
-    for index, row in output.iterrows():
-        output_rows = np.append(output_rows, row['Close'])
+    output_arr = output.to_numpy()
 
     for i in range(len(expected)):
-        assert pytest.approx(expected[i], output_rows[i])
+        assert pytest.approx(expected[i], output_arr[i])
 
-    assert len(expected) == len(output_rows)
+    assert len(expected) == len(output_arr)
+
+
+@pytest.mark.parametrize("alpha,expected", [
+    (2/3, np.array([3.37, 3.93, 4.043333333, 3.947777778, 3.842592593, 3.787530864, 3.695843621, 3.731947874, 3.830649291])),
+    (1/2, np.array([3.37, 3.79, 3.945, 3.9225, 3.85625, 3.808125, 3.7290625, 3.73953125, 3.809765625])),
+])
+def test_exponential_moving_average(NineDayPrices, alpha, expected):
+    output = exponential_moving_average(NineDayPrices, alpha=alpha)
+    output.dropna(inplace=True)
+    output_arr = output.to_numpy()
+
+    for i in range(len(expected)):
+        assert pytest.approx(expected[i], output_arr[i])
+
+    assert len(expected) == len(output_arr)
