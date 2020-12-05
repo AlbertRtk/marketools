@@ -25,7 +25,7 @@ def rsi(prices: pd.DataFrame, window: int = 14):
     price_changes['Down'] = price_prev - price_now  # downward changes
     price_changes[price_changes < 0] = 0
 
-    smma = price_changes.ewm(alpha=1/window, adjust=False).mean()  # smoothed moving averages
+    smma = price_changes.ewm(alpha=1/window, adjust=False).mean()  # smoothed moving averages, alpha = 1/N (not 2/(N+1))
     rs = smma['Up'] / smma['Down']
 
     output_rsi = -100 / (rs+1)
