@@ -75,4 +75,6 @@ def rsi_cross_signals(rsi_values: pd.DataFrame,
     else:
         raise ValueError('wrong value for direction, must be "rise" or "fall"')
 
+    output = output.rename(f'Cross signal ({cross_line} on {direction})')
+
     return output
