@@ -1,7 +1,7 @@
 import pandas as pd
 
 
-def rsi(prices: pd.DataFrame, alpha: float=1/14):
+def rsi(prices: pd.DataFrame, window: int = 14):
     """
     Calculates Relative Strength Index (RSI).
 
@@ -9,12 +9,12 @@ def rsi(prices: pd.DataFrame, alpha: float=1/14):
     ----------
     prices : pandas.DataFrame 
         DataFrame with 'Close' column containing closing prices of stock
-    alpha : float
-        smoothing factor, 0 < alpha <= 1
+    window : int
+        size of the moving window.
 
     Returns
     -------
-    pandas.Series
+    pandas.DataFrame
     """
     
     price_now = prices['Close']
@@ -25,7 +25,7 @@ def rsi(prices: pd.DataFrame, alpha: float=1/14):
     price_changes['Down'] = price_prev - price_now  # downward changes
     price_changes[price_changes < 0] = 0
 
-    smma = price_changes.ewm(alpha = alpha, adjust=False).mean()  # smoothed moving averages
+    smma = price_changes.ewm(span=window, adjust=False).mean()  # smoothed moving averages
     rs = smma['Up'] / smma['Down']
 
     output_rsi = -100 / (rs+1)
@@ -39,7 +39,7 @@ def rsi(prices: pd.DataFrame, alpha: float=1/14):
 
 def rsi_cross_signals(rsi_values: pd.DataFrame, 
                       cross_line: float, 
-                      direction: str='onrise'):
+                      direction: str='rise'):
     """
     Calculates buy/sell signals for given RSI signal line. Returns table with 
     True values for days when signal appears.
@@ -52,11 +52,11 @@ def rsi_cross_signals(rsi_values: pd.DataFrame,
         signal threshold line, when signal line crosses this line signal is set
     direction : str
         direction the signal line should cross threshold line 
-        ('onrise' - signal increasing [default], 'onfall' - signal decreasing)
+        ('rise' - signal increasing [default], 'fall' - signal decreasing)
     
     Returns
     -------
-    pandas.Series
+    pandas.DataFrame
     """
 
     if not (0 < cross_line < 100):
@@ -66,13 +66,13 @@ def rsi_cross_signals(rsi_values: pd.DataFrame,
     rsi_copy['RSI'] = rsi_values['RSI']
     rsi_copy['RSI day before'] = rsi_values['RSI'].shift(1)
 
-    if 'onrise' == direction:
+    if 'rise' == direction:
         # True signal if RSI is increasing and crossing the threshold line
         output = (rsi_copy['RSI'] >= cross_line ) & (rsi_copy['RSI day before'] < cross_line)
-    elif 'onfall' == direction:
+    elif 'fall' == direction:
         # True signal if RSI is decreasing and crossing the threshold line
         output = (rsi_copy['RSI'] <= cross_line ) & (rsi_copy['RSI day before'] > cross_line)
     else:
-        raise ValueError('wrong value for direction, must be "onrise" or "onfall"')
+        raise ValueError('wrong value for direction, must be "rise" or "fall"')
 
     return output
