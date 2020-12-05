@@ -11,12 +11,12 @@ def NineDayPrices():
     return df
 
 
-@pytest.mark.parametrize("window,min_periods,expected", [
-    (2, 2, np.array([3.79, 4.155, 4.00, 3.845, 3.775, 3.705, 3.70, 3.815])),
-    (2, 0, np.array([3.37, 3.79, 4.155, 4.00, 3.845, 3.775, 3.705, 3.70, 3.815]))
+@pytest.mark.parametrize("window,expected", [
+    (2, np.array([3.79, 4.155, 4.00, 3.845, 3.775, 3.705, 3.70, 3.815])),
+    (3, np.array([3.89, 4.07, 3.93, 3.82, 3.73, 3.72, 3.76]))
 ])
-def test_simple_moving_average(NineDayPrices, window, min_periods, expected):
-    output = simple_moving_average(NineDayPrices, window=window, min_periods=min_periods)
+def test_simple_moving_average(NineDayPrices, window, expected):
+    output = simple_moving_average(NineDayPrices, window=window)
     output.dropna(inplace=True)
     output_arr = output.to_numpy()
 
@@ -46,7 +46,7 @@ def test_weighted_moving_average(NineDayPrices, window, expected):
     (3, np.array([3.37, 3.79, 3.945, 3.9225, 3.85625, 3.808125, 3.7290625, 3.73953125, 3.809765625])),
 ])
 def test_exponential_moving_average(NineDayPrices, span, expected):
-    output = exponential_moving_average(NineDayPrices, span=span)
+    output = exponential_moving_average(NineDayPrices, window=span)
     output.dropna(inplace=True)
     output_arr = output.to_numpy()
 
