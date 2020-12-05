@@ -14,7 +14,7 @@ def rsi(prices: pd.DataFrame, window: int = 14):
 
     Returns
     -------
-    pandas.DataFrame
+    pandas.Series
     """
     
     price_now = prices['Close']
@@ -32,12 +32,11 @@ def rsi(prices: pd.DataFrame, window: int = 14):
     output_rsi = output_rsi + 100
 
     output_rsi = output_rsi.rename('RSI')
-    output_rsi = output_rsi.to_frame()
 
     return output_rsi
 
 
-def rsi_cross_signals(rsi_values: pd.DataFrame, 
+def rsi_cross_signals(rsi_values: pd.Series, 
                       cross_line: float, 
                       direction: str='rise'):
     """
@@ -46,7 +45,7 @@ def rsi_cross_signals(rsi_values: pd.DataFrame,
 
     Parameters
     ----------
-    rsi_values : pandas.DataFrame 
+    rsi_values : pandas.Series 
         DataFrame with RSI column
     cross_line : float
         signal threshold line, when signal line crosses this line signal is set
@@ -56,15 +55,15 @@ def rsi_cross_signals(rsi_values: pd.DataFrame,
     
     Returns
     -------
-    pandas.DataFrame
+    pandas.Series
     """
 
     if not (0 < cross_line < 100):
         raise ValueError('cross_line takes values from 0 to 100')
 
     rsi_copy = pd.DataFrame()
-    rsi_copy['RSI'] = rsi_values['RSI']
-    rsi_copy['RSI day before'] = rsi_values['RSI'].shift(1)
+    rsi_copy['RSI'] = rsi_values
+    rsi_copy['RSI day before'] = rsi_values.shift(1)
 
     if 'rise' == direction:
         # True signal if RSI is increasing and crossing the threshold line
