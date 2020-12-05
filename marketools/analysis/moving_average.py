@@ -4,8 +4,7 @@ import numpy as np
 
 def simple_moving_average(ohlc: pd.DataFrame,
                           price: str = 'Close',
-                          window: int = 15,
-                          min_periods: int = 0):
+                          window: int = 15):
     """
     Returns Pandas Series with the Simple Moving Average for the indicated price. NaN will be placed for days
     where there is not enough previous data (depends on min_periods)
@@ -18,8 +17,6 @@ def simple_moving_average(ohlc: pd.DataFrame,
         The price on which SMA will be calculated (Close by default)
     window : int
         Size of the moving window. This is the number of observations used for calculating the statistic
-    min_periods: int
-        Minimum number of observations in window required to have a value (otherwise result is NA)
 
     Returns
     -------
@@ -27,7 +24,7 @@ def simple_moving_average(ohlc: pd.DataFrame,
     """
 
     # implement simple moving average
-    output = ohlc[price].rolling(window=window, min_periods=min_periods).mean()
+    output = ohlc[price].rolling(window=window).mean()
 
     return output
 
@@ -63,8 +60,8 @@ def weighted_moving_average(ohlc: pd.DataFrame,
 
 
 def exponential_moving_average(ohlc: pd.DataFrame,
-                               span: float,
-                               price: str = 'Close'):
+                               price: str = 'Close',
+                               window: int = 15):
     """
     Returns Pandas Series with the Exponential Moving Average for the indicated price.
 
@@ -72,10 +69,10 @@ def exponential_moving_average(ohlc: pd.DataFrame,
     ----------
     ohlc : pandas.DataFrame
         DataFrame with OHLC data
-    span : float
-        specify decay in terms of span, alpha = 2/(span + 1) for span >= 1
     price : str
         The price on which EMA will be calculated (Close by default)
+    window : int
+        Size of the moving window. (span in EMA, alpha = 2/(span + 1) for span >= 1)
 
     Returns
     -------
@@ -83,7 +80,7 @@ def exponential_moving_average(ohlc: pd.DataFrame,
     """
 
     # implement exponential moving average
-    output = ohlc[price].ewm(span=span, adjust=False).mean()
+    output = ohlc[price].ewm(span=window, adjust=False).mean()
 
     return output
 
