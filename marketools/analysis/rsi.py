@@ -1,7 +1,7 @@
 import pandas as pd
 
 
-def rsi(prices: pd.DataFrame, window: int = 14):
+def relative_strength_index(prices: pd.DataFrame, window: int = 14):
     """
     Calculates Relative Strength Index (RSI).
 
