@@ -50,7 +50,7 @@ def simulator(time_range: pd.DatetimeIndex,
         an array with trading days only (no Saturdays, Sundays, holidays)
     traded_stocks : dict
         a dictionary with stocks.stock.Stock instances
-    wallet : marketools.wallet.Wallet
+    wallet : marketools.Wallet
         Wallet for trading 
     max_positions : int 
         maximum number of different stocks in the wallet
@@ -208,7 +208,7 @@ change of wallet value over given time_range (in pandas.DataFrame)</p>
 <dd>an array with trading days only (no Saturdays, Sundays, holidays)</dd>
 <dt><strong><code>traded_stocks</code></strong> :&ensp;<code>dict</code></dt>
 <dd>a dictionary with stocks.stock.Stock instances</dd>
-<dt><strong><code>wallet</code></strong> :&ensp;<code>marketools.wallet.Wallet</code></dt>
+<dt><strong><code>wallet</code></strong> :&ensp;<code>marketools.Wallet</code></dt>
 <dd>Wallet for trading</dd>
 <dt><strong><code>max_positions</code></strong> :&ensp;<code>int </code></dt>
 <dd>maximum number of different stocks in the wallet</dd>
@@ -249,7 +249,7 @@ simulated</dd>
         an array with trading days only (no Saturdays, Sundays, holidays)
     traded_stocks : dict
         a dictionary with stocks.stock.Stock instances
-    wallet : marketools.wallet.Wallet
+    wallet : marketools.Wallet
         Wallet for trading 
     max_positions : int 
         maximum number of different stocks in the wallet
