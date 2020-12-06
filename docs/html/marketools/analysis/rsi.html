@@ -29,7 +29,7 @@
 <pre><code class="python">import pandas as pd
 
 
-def rsi(prices: pd.DataFrame, alpha: float=1/14):
+def relative_strength_index(prices: pd.DataFrame, window: int = 14):
     &#34;&#34;&#34;
     Calculates Relative Strength Index (RSI).
 
@@ -37,8 +37,8 @@ def rsi(prices: pd.DataFrame, alpha: float=1/14):
     ----------
     prices : pandas.DataFrame 
         DataFrame with &#39;Close&#39; column containing closing prices of stock
-    alpha : float
-        smoothing factor, 0 &lt; alpha &lt;= 1
+    window : int
+        size of the moving window.
 
     Returns
     -------
@@ -53,34 +53,33 @@ def rsi(prices: pd.DataFrame, alpha: float=1/14):
     price_changes[&#39;Down&#39;] = price_prev - price_now  # downward changes
     price_changes[price_changes &lt; 0] = 0
 
-    smma = price_changes.ewm(alpha = alpha, adjust=False).mean()  # smoothed moving averages
+    smma = price_changes.ewm(alpha=1/window, adjust=False).mean()  # smoothed moving averages, alpha = 1/N (not 2/(N+1))
     rs = smma[&#39;Up&#39;] / smma[&#39;Down&#39;]
 
     output_rsi = -100 / (rs+1)
     output_rsi = output_rsi + 100
 
     output_rsi = output_rsi.rename(&#39;RSI&#39;)
-    output_rsi = output_rsi.to_frame()
 
     return output_rsi
 
 
-def rsi_cross_signals(rsi_values: pd.DataFrame, 
+def rsi_cross_signals(rsi_values: pd.Series, 
                       cross_line: float, 
-                      direction: str=&#39;onrise&#39;):
+                      direction: str=&#39;rise&#39;):
     &#34;&#34;&#34;
     Calculates buy/sell signals for given RSI signal line. Returns table with 
     True values for days when signal appears.
 
     Parameters
     ----------
-    rsi_values : pandas.DataFrame 
+    rsi_values : pandas.Series 
         DataFrame with RSI column
     cross_line : float
         signal threshold line, when signal line crosses this line signal is set
     direction : str
         direction the signal line should cross threshold line 
-        (&#39;onrise&#39; - signal increasing [default], &#39;onfall&#39; - signal decreasing)
+        (&#39;rise&#39; - signal increasing [default], &#39;fall&#39; - signal decreasing)
     
     Returns
     -------
@@ -91,17 +90,19 @@ def rsi_cross_signals(rsi_values: pd.DataFrame,
         raise ValueError(&#39;cross_line takes values from 0 to 100&#39;)
 
     rsi_copy = pd.DataFrame()
-    rsi_copy[&#39;RSI&#39;] = rsi_values[&#39;RSI&#39;]
-    rsi_copy[&#39;RSI day before&#39;] = rsi_values[&#39;RSI&#39;].shift(1)
+    rsi_copy[&#39;RSI&#39;] = rsi_values
+    rsi_copy[&#39;RSI day before&#39;] = rsi_values.shift(1)
 
-    if &#39;onrise&#39; == direction:
+    if &#39;rise&#39; == direction:
         # True signal if RSI is increasing and crossing the threshold line
         output = (rsi_copy[&#39;RSI&#39;] &gt;= cross_line ) &amp; (rsi_copy[&#39;RSI day before&#39;] &lt; cross_line)
-    elif &#39;onfall&#39; == direction:
+    elif &#39;fall&#39; == direction:
         # True signal if RSI is decreasing and crossing the threshold line
         output = (rsi_copy[&#39;RSI&#39;] &lt;= cross_line ) &amp; (rsi_copy[&#39;RSI day before&#39;] &gt; cross_line)
     else:
-        raise ValueError(&#39;wrong value for direction, must be &#34;onrise&#34; or &#34;onfall&#34;&#39;)
+        raise ValueError(&#39;wrong value for direction, must be &#34;rise&#34; or &#34;fall&#34;&#39;)
+
+    output = output.rename(f&#39;Cross signal ({cross_line} on {direction})&#39;)
 
     return output</code></pre>
 </details>
@@ -113,8 +114,8 @@ def rsi_cross_signals(rsi_values: pd.DataFrame,
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="marketools.analysis.rsi.rsi"><code class="name flex">
-<span>def <span class="ident">rsi</span></span>(<span>prices: pandas.core.frame.DataFrame, alpha: float = 0.07142857142857142)</span>
+<dt id="marketools.analysis.rsi.relative_strength_index"><code class="name flex">
+<span>def <span class="ident">relative_strength_index</span></span>(<span>prices: pandas.core.frame.DataFrame, window: int = 14)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Calculates Relative Strength Index (RSI).</p>
@@ -122,8 +123,8 @@ def rsi_cross_signals(rsi_values: pd.DataFrame,
 <dl>
 <dt><strong><code>prices</code></strong> :&ensp;<code>pandas.DataFrame </code></dt>
 <dd>DataFrame with 'Close' column containing closing prices of stock</dd>
-<dt><strong><code>alpha</code></strong> :&ensp;<code>float</code></dt>
-<dd>smoothing factor, 0 &lt; alpha &lt;= 1</dd>
+<dt><strong><code>window</code></strong> :&ensp;<code>int</code></dt>
+<dd>size of the moving window.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
@@ -134,7 +135,7 @@ def rsi_cross_signals(rsi_values: pd.DataFrame,
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def rsi(prices: pd.DataFrame, alpha: float=1/14):
+<pre><code class="python">def relative_strength_index(prices: pd.DataFrame, window: int = 14):
     &#34;&#34;&#34;
     Calculates Relative Strength Index (RSI).
 
@@ -142,8 +143,8 @@ def rsi_cross_signals(rsi_values: pd.DataFrame,
     ----------
     prices : pandas.DataFrame 
         DataFrame with &#39;Close&#39; column containing closing prices of stock
-    alpha : float
-        smoothing factor, 0 &lt; alpha &lt;= 1
+    window : int
+        size of the moving window.
 
     Returns
     -------
@@ -158,33 +159,32 @@ def rsi_cross_signals(rsi_values: pd.DataFrame,
     price_changes[&#39;Down&#39;] = price_prev - price_now  # downward changes
     price_changes[price_changes &lt; 0] = 0
 
-    smma = price_changes.ewm(alpha = alpha, adjust=False).mean()  # smoothed moving averages
+    smma = price_changes.ewm(alpha=1/window, adjust=False).mean()  # smoothed moving averages, alpha = 1/N (not 2/(N+1))
     rs = smma[&#39;Up&#39;] / smma[&#39;Down&#39;]
 
     output_rsi = -100 / (rs+1)
     output_rsi = output_rsi + 100
 
     output_rsi = output_rsi.rename(&#39;RSI&#39;)
-    output_rsi = output_rsi.to_frame()
 
     return output_rsi</code></pre>
 </details>
 </dd>
 <dt id="marketools.analysis.rsi.rsi_cross_signals"><code class="name flex">
-<span>def <span class="ident">rsi_cross_signals</span></span>(<span>rsi_values: pandas.core.frame.DataFrame, cross_line: float, direction: str = 'onrise')</span>
+<span>def <span class="ident">rsi_cross_signals</span></span>(<span>rsi_values: pandas.core.series.Series, cross_line: float, direction: str = 'rise')</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Calculates buy/sell signals for given RSI signal line. Returns table with
 True values for days when signal appears.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>rsi_values</code></strong> :&ensp;<code>pandas.DataFrame </code></dt>
+<dt><strong><code>rsi_values</code></strong> :&ensp;<code>pandas.Series </code></dt>
 <dd>DataFrame with RSI column</dd>
 <dt><strong><code>cross_line</code></strong> :&ensp;<code>float</code></dt>
 <dd>signal threshold line, when signal line crosses this line signal is set</dd>
 <dt><strong><code>direction</code></strong> :&ensp;<code>str</code></dt>
 <dd>direction the signal line should cross threshold line
-('onrise' - signal increasing [default], 'onfall' - signal decreasing)</dd>
+('rise' - signal increasing [default], 'fall' - signal decreasing)</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
@@ -195,22 +195,22 @@ True values for days when signal appears.</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def rsi_cross_signals(rsi_values: pd.DataFrame, 
+<pre><code class="python">def rsi_cross_signals(rsi_values: pd.Series, 
                       cross_line: float, 
-                      direction: str=&#39;onrise&#39;):
+                      direction: str=&#39;rise&#39;):
     &#34;&#34;&#34;
     Calculates buy/sell signals for given RSI signal line. Returns table with 
     True values for days when signal appears.
 
     Parameters
     ----------
-    rsi_values : pandas.DataFrame 
+    rsi_values : pandas.Series 
         DataFrame with RSI column
     cross_line : float
         signal threshold line, when signal line crosses this line signal is set
     direction : str
         direction the signal line should cross threshold line 
-        (&#39;onrise&#39; - signal increasing [default], &#39;onfall&#39; - signal decreasing)
+        (&#39;rise&#39; - signal increasing [default], &#39;fall&#39; - signal decreasing)
     
     Returns
     -------
@@ -221,17 +221,19 @@ True values for days when signal appears.</p>
         raise ValueError(&#39;cross_line takes values from 0 to 100&#39;)
 
     rsi_copy = pd.DataFrame()
-    rsi_copy[&#39;RSI&#39;] = rsi_values[&#39;RSI&#39;]
-    rsi_copy[&#39;RSI day before&#39;] = rsi_values[&#39;RSI&#39;].shift(1)
+    rsi_copy[&#39;RSI&#39;] = rsi_values
+    rsi_copy[&#39;RSI day before&#39;] = rsi_values.shift(1)
 
-    if &#39;onrise&#39; == direction:
+    if &#39;rise&#39; == direction:
         # True signal if RSI is increasing and crossing the threshold line
         output = (rsi_copy[&#39;RSI&#39;] &gt;= cross_line ) &amp; (rsi_copy[&#39;RSI day before&#39;] &lt; cross_line)
-    elif &#39;onfall&#39; == direction:
+    elif &#39;fall&#39; == direction:
         # True signal if RSI is decreasing and crossing the threshold line
         output = (rsi_copy[&#39;RSI&#39;] &lt;= cross_line ) &amp; (rsi_copy[&#39;RSI day before&#39;] &gt; cross_line)
     else:
-        raise ValueError(&#39;wrong value for direction, must be &#34;onrise&#34; or &#34;onfall&#34;&#39;)
+        raise ValueError(&#39;wrong value for direction, must be &#34;rise&#34; or &#34;fall&#34;&#39;)
+
+    output = output.rename(f&#39;Cross signal ({cross_line} on {direction})&#39;)
 
     return output</code></pre>
 </details>
@@ -254,7 +256,7 @@ True values for days when signal appears.</p>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="marketools.analysis.rsi.rsi" href="#marketools.analysis.rsi.rsi">rsi</a></code></li>
+<li><code><a title="marketools.analysis.rsi.relative_strength_index" href="#marketools.analysis.rsi.relative_strength_index">relative_strength_index</a></code></li>
 <li><code><a title="marketools.analysis.rsi.rsi_cross_signals" href="#marketools.analysis.rsi.rsi_cross_signals">rsi_cross_signals</a></code></li>
 </ul>
 </li>

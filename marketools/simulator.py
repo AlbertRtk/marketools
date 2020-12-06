@@ -22,7 +22,7 @@ def simulator(time_range: pd.DatetimeIndex,
         an array with trading days only (no Saturdays, Sundays, holidays)
     traded_stocks : dict
         a dictionary with stocks.stock.Stock instances
-    wallet : marketools.wallet.Wallet
+    wallet : marketools.Wallet
         Wallet for trading 
     max_positions : int 
         maximum number of different stocks in the wallet
