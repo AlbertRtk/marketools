@@ -1,4 +1,5 @@
-from marketools.wallet import Wallet, calculate_investment_value
+from marketools import Wallet
+from marketools.wallet import calculate_investment_value
 
 
 def test_calculate_investment_value__max():

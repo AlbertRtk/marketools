@@ -1,5 +1,5 @@
 from marketools.stock import *
-from marketools import wallet
+from marketools.wallet import Wallet
 from marketools.simulator import simulator
 from marketools.analysis import *
 
