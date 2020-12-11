@@ -6,6 +6,6 @@ Release notes
 * adding functions for calculation of SMA, WMA and EMA to analysis sub-module ([#18](https://github.com/AlbertRtk/marketools/pull/18))
 * changes in RSI calculations ([#24](https://github.com/AlbertRtk/marketools/pull/24))
 
-### v0.2.x
+### v0.2.1
 * adding names for outputs (pandas.series) of moving average functions
 * volume module refactoring 
