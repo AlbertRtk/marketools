@@ -25,6 +25,7 @@ def simple_moving_average(ohlc: pd.DataFrame,
 
     # implement simple moving average
     output = ohlc[price].rolling(window=window).mean()
+    output = output.rename(f'SMA{window}')
 
     return output
 
@@ -56,6 +57,8 @@ def weighted_moving_average(ohlc: pd.DataFrame,
     output = ohlc[price].rolling(window=window)\
         .apply(lambda prices: np.dot(prices, weights)/weights.sum(), raw=True)
 
+    output = output.rename(f'WMA{window}')
+
     return output
 
 
@@ -81,6 +84,7 @@ def exponential_moving_average(ohlc: pd.DataFrame,
 
     # implement exponential moving average
     output = ohlc[price].ewm(span=window, adjust=False).mean()
+    output = output.rename(f'EMA{window}')
 
     return output
 
