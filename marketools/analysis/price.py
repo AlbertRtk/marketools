@@ -1,7 +1,7 @@
 import pandas as pd
 
 
-def relative_price_change(new_price: float, ref_price: float):
+def simple_relative_price_change(new_price: float, ref_price: float):
     """
     Calculates and returns relative price change.
 
