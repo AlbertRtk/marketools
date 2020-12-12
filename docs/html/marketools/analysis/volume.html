@@ -28,7 +28,7 @@
 </summary>
 <pre><code class="python">def mean_volume_on_date(volume_data, 
                         day, 
-                        over_last=90):
+                        window=90):
     &#34;&#34;&#34;
     Returns mean volume over given number of sessions before given date 
     (inclusively).
@@ -39,8 +39,9 @@
         DataFrame with &#39;Volume&#39; column
     day : date 
         date the mean volume should be calculated for
-    over_last : int
-        number of stock market sessions the average should be calculated over
+    window : int
+        number of recent stock market sessions the average should be calculated 
+        over
 
     Returns
     -------
@@ -49,6 +50,7 @@
     
     volume = volume_data[:day].tail(over_last)[&#39;Volume&#39;]
     output = volume.mean()
+    
     return output</code></pre>
 </details>
 </section>
@@ -60,7 +62,7 @@
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="marketools.analysis.volume.mean_volume_on_date"><code class="name flex">
-<span>def <span class="ident">mean_volume_on_date</span></span>(<span>volume_data, day, over_last=90)</span>
+<span>def <span class="ident">mean_volume_on_date</span></span>(<span>volume_data, day, window=90)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Returns mean volume over given number of sessions before given date
@@ -71,8 +73,9 @@
 <dd>DataFrame with 'Volume' column</dd>
 <dt><strong><code>day</code></strong> :&ensp;<code>date </code></dt>
 <dd>date the mean volume should be calculated for</dd>
-<dt><strong><code>over_last</code></strong> :&ensp;<code>int</code></dt>
-<dd>number of stock market sessions the average should be calculated over</dd>
+<dt><strong><code>window</code></strong> :&ensp;<code>int</code></dt>
+<dd>number of recent stock market sessions the average should be calculated
+over</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
@@ -85,7 +88,7 @@
 </summary>
 <pre><code class="python">def mean_volume_on_date(volume_data, 
                         day, 
-                        over_last=90):
+                        window=90):
     &#34;&#34;&#34;
     Returns mean volume over given number of sessions before given date 
     (inclusively).
@@ -96,8 +99,9 @@
         DataFrame with &#39;Volume&#39; column
     day : date 
         date the mean volume should be calculated for
-    over_last : int
-        number of stock market sessions the average should be calculated over
+    window : int
+        number of recent stock market sessions the average should be calculated 
+        over
 
     Returns
     -------
@@ -106,6 +110,7 @@
     
     volume = volume_data[:day].tail(over_last)[&#39;Volume&#39;]
     output = volume.mean()
+    
     return output</code></pre>
 </details>
 </dd>

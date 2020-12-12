@@ -9,3 +9,6 @@ Release notes
 ### v0.2.1
 * adding names for outputs (pandas.series) of moving average functions
 * volume module refactoring 
+
+### v0.x.x
+* adding function price_change into analysis sub-module
