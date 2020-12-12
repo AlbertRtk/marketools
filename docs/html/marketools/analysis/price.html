@@ -26,7 +26,10 @@
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def relative_price_change(new_price: float, ref_price: float):
+<pre><code class="python">import pandas as pd
+
+
+def simple_relative_price_change(new_price: float, ref_price: float):
     &#34;&#34;&#34;
     Calculates and returns relative price change.
 
@@ -43,7 +46,57 @@
     &#34;&#34;&#34;
     
     assert ref_price &gt; 0
-    return (new_price - ref_price) / ref_price</code></pre>
+    return (new_price - ref_price) / ref_price
+
+
+def price_change(ohlc: pd.DataFrame, 
+                 shift: int = 0,
+                 relative: bool = False,
+                 percent: bool = False):
+    &#34;&#34;&#34;
+    Calculates price change based on given DataFrame with OHLC prices.
+
+    Parameters
+    ----------
+    ohlc : pandas.DataFrame
+        DataFrame with OHLC data
+    shift : int
+        default is zero - price change is calculated as change within one day 
+        (Close-Open); if greater than zero, the change is calculated in relation 
+        to close price &#34;shift&#34; days before (Close[today]-Close[today-shift]) 
+    relative : bool
+        if True calculates relative price change
+    relative : bool
+        if True returns relative price change expressed in percentage (relative 
+        must be True)
+
+    Returns
+    -------
+    pandas.Series
+    &#34;&#34;&#34;
+
+    if shift:
+        ref_price = ohlc[&#39;Close&#39;].shift(shift)
+        name_str = f&#39;({shift}d)&#39;
+    else:
+        ref_price = ohlc[&#39;Open&#39;]
+        name_str = &#39;(daily)&#39;
+
+    change = ohlc[&#39;Close&#39;] - ref_price
+
+    if relative:
+        change = change / ref_price
+        if percent:
+            change = 100 * change
+            name_str = &#39;%Change &#39; + name_str
+        else:
+            name_str = &#39;Relative change &#39; + name_str
+    else:
+        name_str = &#39;Change &#39; + name_str
+
+    change = change.rename(name_str)
+
+    return change</code></pre>
 </details>
 </section>
 <section>
@@ -53,8 +106,86 @@
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="marketools.analysis.price.relative_price_change"><code class="name flex">
-<span>def <span class="ident">relative_price_change</span></span>(<span>new_price: float, ref_price: float)</span>
+<dt id="marketools.analysis.price.price_change"><code class="name flex">
+<span>def <span class="ident">price_change</span></span>(<span>ohlc: pandas.core.frame.DataFrame, shift: int = 0, relative: bool = False, percent: bool = False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculates price change based on given DataFrame with OHLC prices.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>ohlc</code></strong> :&ensp;<code>pandas.DataFrame</code></dt>
+<dd>DataFrame with OHLC data</dd>
+<dt><strong><code>shift</code></strong> :&ensp;<code>int</code></dt>
+<dd>default is zero - price change is calculated as change within one day
+(Close-Open); if greater than zero, the change is calculated in relation
+to close price "shift" days before (Close[today]-Close[today-shift])</dd>
+<dt><strong><code>relative</code></strong> :&ensp;<code>bool</code></dt>
+<dd>if True calculates relative price change</dd>
+<dt><strong><code>relative</code></strong> :&ensp;<code>bool</code></dt>
+<dd>if True returns relative price change expressed in percentage (relative
+must be True)</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>pandas.Series</code></dt>
+<dd>&nbsp;</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def price_change(ohlc: pd.DataFrame, 
+                 shift: int = 0,
+                 relative: bool = False,
+                 percent: bool = False):
+    &#34;&#34;&#34;
+    Calculates price change based on given DataFrame with OHLC prices.
+
+    Parameters
+    ----------
+    ohlc : pandas.DataFrame
+        DataFrame with OHLC data
+    shift : int
+        default is zero - price change is calculated as change within one day 
+        (Close-Open); if greater than zero, the change is calculated in relation 
+        to close price &#34;shift&#34; days before (Close[today]-Close[today-shift]) 
+    relative : bool
+        if True calculates relative price change
+    relative : bool
+        if True returns relative price change expressed in percentage (relative 
+        must be True)
+
+    Returns
+    -------
+    pandas.Series
+    &#34;&#34;&#34;
+
+    if shift:
+        ref_price = ohlc[&#39;Close&#39;].shift(shift)
+        name_str = f&#39;({shift}d)&#39;
+    else:
+        ref_price = ohlc[&#39;Open&#39;]
+        name_str = &#39;(daily)&#39;
+
+    change = ohlc[&#39;Close&#39;] - ref_price
+
+    if relative:
+        change = change / ref_price
+        if percent:
+            change = 100 * change
+            name_str = &#39;%Change &#39; + name_str
+        else:
+            name_str = &#39;Relative change &#39; + name_str
+    else:
+        name_str = &#39;Change &#39; + name_str
+
+    change = change.rename(name_str)
+
+    return change</code></pre>
+</details>
+</dd>
+<dt id="marketools.analysis.price.simple_relative_price_change"><code class="name flex">
+<span>def <span class="ident">simple_relative_price_change</span></span>(<span>new_price: float, ref_price: float)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Calculates and returns relative price change.</p>
@@ -74,7 +205,7 @@
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def relative_price_change(new_price: float, ref_price: float):
+<pre><code class="python">def simple_relative_price_change(new_price: float, ref_price: float):
     &#34;&#34;&#34;
     Calculates and returns relative price change.
 
@@ -112,7 +243,8 @@
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="marketools.analysis.price.relative_price_change" href="#marketools.analysis.price.relative_price_change">relative_price_change</a></code></li>
+<li><code><a title="marketools.analysis.price.price_change" href="#marketools.analysis.price.price_change">price_change</a></code></li>
+<li><code><a title="marketools.analysis.price.simple_relative_price_change" href="#marketools.analysis.price.simple_relative_price_change">simple_relative_price_change</a></code></li>
 </ul>
 </li>
 </ul>
