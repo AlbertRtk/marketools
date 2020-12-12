@@ -4,5 +4,5 @@ from marketools.analysis.macd import macd
 from marketools.analysis.moving_average import simple_moving_average as sma
 from marketools.analysis.moving_average import weighted_moving_average as wma
 from marketools.analysis.moving_average import exponential_moving_average as ema
-from marketools.analysis.price import relative_price_change
+from marketools.analysis.price import relative_price_change, price_change
 from marketools.analysis.volume import mean_volume_on_date
