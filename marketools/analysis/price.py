@@ -26,6 +26,25 @@ def price_change(ohlc: pd.DataFrame,
                  relative: bool = False,
                  percent: bool = False):
     """
+    Calculates price change based on given DataFrame with OHLC prices.
+
+    Parameters
+    ----------
+    ohlc : pandas.DataFrame
+        DataFrame with OHLC data
+    shift : int
+        default is zero - price change is calculated as change within one day 
+        (Close-Open); if greater than zero, the change is calculated in relation 
+        to close price "shift" days before (Close[today]-Close[today-shift]) 
+    relative : bool
+        if True calculates relative price change
+    relative : bool
+        if True returns relative price change expressed in percentage (relative 
+        must be True)
+
+    Returns
+    -------
+    pandas.Series
     """
 
     if shift:
