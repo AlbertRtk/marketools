@@ -35,25 +35,6 @@ class StockQuotes():
         self._historical_ohlc = None
 
     @property
-    def data(self):
-        if self._historical_ohlc is None:
-            self._historical_ohlc = self._get_data()
-        return self._historical_ohlc 
-
-    @property
-    def price(self):
-        """
-        """
-
-        raw_table = scrap_summary_table(self.ticker)
-
-        output_dict = {
-            'Price': raw_table.loc['Kurs', 1], 
-            'Time': raw_table.loc['Data', 1], 
-        }
-
-
-    @property
     def csv_file_path(self):
         return path.join(DATA_DIR, f'{self.ticker}_ohcl.csv')
 

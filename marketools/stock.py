@@ -1,6 +1,7 @@
 from .stqscraper import DATA_DIR
 from .stqscraper.fundamentals import Fundamentals
 from .stqscraper.stockquotes import StockQuotes
+from .stqscraper.scrapers import scrap_summary_table
 import pandas as pd
 import os
 
@@ -45,21 +46,14 @@ class Stock:
         return self.ohlc.iloc[-1]
 
     @property
-    def date(self):
-        """Returns date of last price."""
-        output = self.last_ohlc.name
-        output = output.strftime('%Y-%m-%d')
-        return output
-
-    @property
     def price(self):
         """Returns last price."""
-        return self.last_ohlc['Close']
+        return scrap_summary_table(self.ticker)['Last']
 
     @property
     def volume(self):
-        """Returns last session volume."""
-        return self.last_ohlc['Volume']
+        """Returns last volume."""
+        return scrap_summary_table(self.ticker)['Volume']
 
     @property
     def fundamentals(self):
@@ -71,35 +65,22 @@ class Stock:
     @property
     def eps(self):
         """Returns earning per share, if available."""
-        output = self.fundamentals.get('EPS')
-        if output is not None:
-            output = float(output)
-        return output
+        return self.fundamentals.get('EPS')
 
     @property
     def pe(self):
         """Returns price–earnings ratio, if available."""
-        output = self.fundamentals.get('P/E')
-        if output is not None:
-            output = float(output)
-        return output
+        return self.fundamentals.get('P/E')
 
     @property
     def pbv(self):
         """Returns price–to-book ratio, if available."""
-        output = self.fundamentals.get('P/BV')
-        if output is not None:
-            output = float(output)
-        return output
+        return self.fundamentals.get('P/BV')
 
     @property
     def dividend_yield(self):
         """Returns dividend yield, if available."""
-        output = self.fundamentals.get('Dividend yield')
-        if output is not None:
-            output = output[0:-1]
-            output = float(output)
-        return output
+        return self.fundamentals.get('Dividend yield')
 
     @property
     def stooq_plot_link(self):
@@ -107,13 +88,13 @@ class Stock:
         link = f'https://stooq.pl/q/a2/?s={self.ticker}'
         return link
 
-    def mean_volume(self, over_last: int):
+    def mean_volume(self, window: int):
         """
         Returns mean volume over given number of the most recent sessions.
 
         Parameters
         ----------
-        over_last : int
+        window : int
             number of recent stock market sessions the average should be 
             calculated over
 
@@ -121,7 +102,7 @@ class Stock:
         -------
         float
         """
-        volume = self.ohlc.tail(over_last)['Volume']
+        volume = self.ohlc.tail(window)['Volume']
         output = volume.mean()
         return output
 
