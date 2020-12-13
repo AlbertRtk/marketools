@@ -1,6 +1,9 @@
 Release notes
 =============
 
+### v0.3.1
+* bug fix in stockquotes.py
+
 ### v0.3.0
 * adding function price_change into analysis sub-module
 * adding scrapers.py - function get_raw_summary_table and scrap_summary_table
