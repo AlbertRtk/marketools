@@ -4,6 +4,7 @@ import numpy as np
 from os import path
 from urllib.request import urlretrieve
 from datetime import datetime, timedelta
+from .scrapers import scrap_summary_table
 
 
 def read_ohlcv_from_csv(file_path):
@@ -38,6 +39,19 @@ class StockQuotes():
         if self._historical_ohlc is None:
             self._historical_ohlc = self._get_data()
         return self._historical_ohlc 
+
+    @property
+    def price(self):
+        """
+        """
+
+        raw_table = scrap_summary_table(self.ticker)
+
+        output_dict = {
+            'Price': raw_table.loc['Kurs', 1], 
+            'Time': raw_table.loc['Data', 1], 
+        }
+
 
     @property
     def csv_file_path(self):

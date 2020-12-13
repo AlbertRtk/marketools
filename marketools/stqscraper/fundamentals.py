@@ -4,6 +4,7 @@ import pandas as pd
 import requests
 import os
 import csv
+from .scrapers import scrap_summary_table 
 
 
 class Fundamentals(dict):
@@ -54,14 +55,8 @@ class Fundamentals(dict):
         Gets available on stooq.com stock fundamentals for ticker.
         """
 
-        # URL to web page with fundamentals
-        url = f'https://stooq.pl/q/g/?s={self.ticker}'
-        html = requests.get(url).text
-
-        # extracting table with fundamentals and setting value names as index
-        raw_table = pd.read_html(html)[0]
-        idx = raw_table.iloc[:, 0]
-        raw_table.set_index(idx, inplace=True)
+        # get raw table with data
+        raw_table = scrap_summary_table(self.ticker)
 
         # using extract_fundamentals_from_table to pars data
         return self._extract_fundamental_from_df_to_dict(raw_table)
