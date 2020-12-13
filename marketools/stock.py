@@ -46,9 +46,14 @@ class Stock:
         return self.ohlc.iloc[-1]
 
     @property
-    def price(self):
+    def last(self):
         """Returns last price."""
         return scrap_summary_table(self.ticker)['Last']
+
+    @property
+    def open(self):
+        """Returns last open price."""
+        return scrap_summary_table(self.ticker)['Open']
 
     @property
     def volume(self):

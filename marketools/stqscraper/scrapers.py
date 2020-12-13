@@ -4,6 +4,17 @@ import re
 
 
 def get_raw_summary_table(ticker):
+    """
+    Downloads and returns raw summary table from Stooq.
+
+    Parameters
+    ----------
+    ticker : str
+        ticker of a stock
+    Returns
+    -------
+    pd.DataFrame
+    """
 
     url = f'https://stooq.pl/q/g/?s={ticker}'
     html = requests.get(url).text
@@ -18,6 +29,18 @@ def get_raw_summary_table(ticker):
 
 def scrap_summary_table(ticker):
     """
+    Scraps summary table with information about given stock ticker. Returns 
+    dictionary with keys: Las - last price, Open - last open price, Volume - 
+    last volume, EPS - EPS, P/E - P/E, P/BV - P/BV, Dividend yield % - dividend
+    yield in percents. 
+
+    Parameters
+    ----------
+    ticker : str
+        ticker of a stock
+    Returns
+    -------
+    dict
     """
 
     # get raw table    
@@ -43,7 +66,7 @@ def scrap_summary_table(ticker):
             output_dict[k] = None
 
     # remove currency from price using regex
-    m = re.search('\d+(\.\d+)?', output_dict['Last'])
+    m = re.search(r'\d+(\.\d+)?', output_dict['Last'])
     output_dict['Last'] = m.group(0)
 
     # remove % from dividend yield
@@ -55,3 +78,7 @@ def scrap_summary_table(ticker):
             output_dict[k] = float(output_dict[k])
 
     return output_dict
+
+
+if __name__ == '__main__':
+    pass
