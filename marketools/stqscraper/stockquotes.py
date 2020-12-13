@@ -28,11 +28,17 @@ def read_ohlcv_from_csv(file_path):
     return output
 
 
-class StockQuotes():
+class StockQuotes:
     def __init__(self, ticker):
         super().__init__()
         self.ticker = ticker
         self._historical_ohlc = None
+
+    @property
+    def data(self):
+        if self._historical_ohlc is None:
+            self._historical_ohlc = self._get_data()
+        return self._historical_ohlc
 
     @property
     def csv_file_path(self):
