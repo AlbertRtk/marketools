@@ -29,6 +29,7 @@
 <pre><code class="python">from .stqscraper import DATA_DIR
 from .stqscraper.fundamentals import Fundamentals
 from .stqscraper.stockquotes import StockQuotes
+from .stqscraper.scrapers import scrap_summary_table
 import pandas as pd
 import os
 
@@ -73,21 +74,19 @@ class Stock:
         return self.ohlc.iloc[-1]
 
     @property
-    def date(self):
-        &#34;&#34;&#34;Returns date of last price.&#34;&#34;&#34;
-        output = self.last_ohlc.name
-        output = output.strftime(&#39;%Y-%m-%d&#39;)
-        return output
+    def last(self):
+        &#34;&#34;&#34;Returns last price.&#34;&#34;&#34;
+        return scrap_summary_table(self.ticker)[&#39;Last&#39;]
 
     @property
-    def price(self):
-        &#34;&#34;&#34;Returns last price.&#34;&#34;&#34;
-        return self.last_ohlc[&#39;Close&#39;]
+    def open(self):
+        &#34;&#34;&#34;Returns last open price.&#34;&#34;&#34;
+        return scrap_summary_table(self.ticker)[&#39;Open&#39;]
 
     @property
     def volume(self):
-        &#34;&#34;&#34;Returns last session volume.&#34;&#34;&#34;
-        return self.last_ohlc[&#39;Volume&#39;]
+        &#34;&#34;&#34;Returns last volume.&#34;&#34;&#34;
+        return scrap_summary_table(self.ticker)[&#39;Volume&#39;]
 
     @property
     def fundamentals(self):
@@ -99,35 +98,22 @@ class Stock:
     @property
     def eps(self):
         &#34;&#34;&#34;Returns earning per share, if available.&#34;&#34;&#34;
-        output = self.fundamentals.get(&#39;EPS&#39;)
-        if output is not None:
-            output = float(output)
-        return output
+        return self.fundamentals.get(&#39;EPS&#39;)
 
     @property
     def pe(self):
         &#34;&#34;&#34;Returns price–earnings ratio, if available.&#34;&#34;&#34;
-        output = self.fundamentals.get(&#39;P/E&#39;)
-        if output is not None:
-            output = float(output)
-        return output
+        return self.fundamentals.get(&#39;P/E&#39;)
 
     @property
     def pbv(self):
         &#34;&#34;&#34;Returns price–to-book ratio, if available.&#34;&#34;&#34;
-        output = self.fundamentals.get(&#39;P/BV&#39;)
-        if output is not None:
-            output = float(output)
-        return output
+        return self.fundamentals.get(&#39;P/BV&#39;)
 
     @property
     def dividend_yield(self):
         &#34;&#34;&#34;Returns dividend yield, if available.&#34;&#34;&#34;
-        output = self.fundamentals.get(&#39;Dividend yield&#39;)
-        if output is not None:
-            output = output[0:-1]
-            output = float(output)
-        return output
+        return self.fundamentals.get(&#39;Dividend yield&#39;)
 
     @property
     def stooq_plot_link(self):
@@ -135,13 +121,13 @@ class Stock:
         link = f&#39;https://stooq.pl/q/a2/?s={self.ticker}&#39;
         return link
 
-    def mean_volume(self, over_last: int):
+    def mean_volume(self, window: int):
         &#34;&#34;&#34;
         Returns mean volume over given number of the most recent sessions.
 
         Parameters
         ----------
-        over_last : int
+        window : int
             number of recent stock market sessions the average should be 
             calculated over
 
@@ -149,7 +135,7 @@ class Stock:
         -------
         float
         &#34;&#34;&#34;
-        volume = self.ohlc.tail(over_last)[&#39;Volume&#39;]
+        volume = self.ohlc.tail(window)[&#39;Volume&#39;]
         output = volume.mean()
         return output
 
@@ -227,21 +213,19 @@ Polish stocks, e.g, 'AAPL.US'</dd>
         return self.ohlc.iloc[-1]
 
     @property
-    def date(self):
-        &#34;&#34;&#34;Returns date of last price.&#34;&#34;&#34;
-        output = self.last_ohlc.name
-        output = output.strftime(&#39;%Y-%m-%d&#39;)
-        return output
+    def last(self):
+        &#34;&#34;&#34;Returns last price.&#34;&#34;&#34;
+        return scrap_summary_table(self.ticker)[&#39;Last&#39;]
 
     @property
-    def price(self):
-        &#34;&#34;&#34;Returns last price.&#34;&#34;&#34;
-        return self.last_ohlc[&#39;Close&#39;]
+    def open(self):
+        &#34;&#34;&#34;Returns last open price.&#34;&#34;&#34;
+        return scrap_summary_table(self.ticker)[&#39;Open&#39;]
 
     @property
     def volume(self):
-        &#34;&#34;&#34;Returns last session volume.&#34;&#34;&#34;
-        return self.last_ohlc[&#39;Volume&#39;]
+        &#34;&#34;&#34;Returns last volume.&#34;&#34;&#34;
+        return scrap_summary_table(self.ticker)[&#39;Volume&#39;]
 
     @property
     def fundamentals(self):
@@ -253,35 +237,22 @@ Polish stocks, e.g, 'AAPL.US'</dd>
     @property
     def eps(self):
         &#34;&#34;&#34;Returns earning per share, if available.&#34;&#34;&#34;
-        output = self.fundamentals.get(&#39;EPS&#39;)
-        if output is not None:
-            output = float(output)
-        return output
+        return self.fundamentals.get(&#39;EPS&#39;)
 
     @property
     def pe(self):
         &#34;&#34;&#34;Returns price–earnings ratio, if available.&#34;&#34;&#34;
-        output = self.fundamentals.get(&#39;P/E&#39;)
-        if output is not None:
-            output = float(output)
-        return output
+        return self.fundamentals.get(&#39;P/E&#39;)
 
     @property
     def pbv(self):
         &#34;&#34;&#34;Returns price–to-book ratio, if available.&#34;&#34;&#34;
-        output = self.fundamentals.get(&#39;P/BV&#39;)
-        if output is not None:
-            output = float(output)
-        return output
+        return self.fundamentals.get(&#39;P/BV&#39;)
 
     @property
     def dividend_yield(self):
         &#34;&#34;&#34;Returns dividend yield, if available.&#34;&#34;&#34;
-        output = self.fundamentals.get(&#39;Dividend yield&#39;)
-        if output is not None:
-            output = output[0:-1]
-            output = float(output)
-        return output
+        return self.fundamentals.get(&#39;Dividend yield&#39;)
 
     @property
     def stooq_plot_link(self):
@@ -289,13 +260,13 @@ Polish stocks, e.g, 'AAPL.US'</dd>
         link = f&#39;https://stooq.pl/q/a2/?s={self.ticker}&#39;
         return link
 
-    def mean_volume(self, over_last: int):
+    def mean_volume(self, window: int):
         &#34;&#34;&#34;
         Returns mean volume over given number of the most recent sessions.
 
         Parameters
         ----------
-        over_last : int
+        window : int
             number of recent stock market sessions the average should be 
             calculated over
 
@@ -303,27 +274,12 @@ Polish stocks, e.g, 'AAPL.US'</dd>
         -------
         float
         &#34;&#34;&#34;
-        volume = self.ohlc.tail(over_last)[&#39;Volume&#39;]
+        volume = self.ohlc.tail(window)[&#39;Volume&#39;]
         output = volume.mean()
         return output</code></pre>
 </details>
 <h3>Instance variables</h3>
 <dl>
-<dt id="marketools.stock.Stock.date"><code class="name">var <span class="ident">date</span></code></dt>
-<dd>
-<div class="desc"><p>Returns date of last price.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@property
-def date(self):
-    &#34;&#34;&#34;Returns date of last price.&#34;&#34;&#34;
-    output = self.last_ohlc.name
-    output = output.strftime(&#39;%Y-%m-%d&#39;)
-    return output</code></pre>
-</details>
-</dd>
 <dt id="marketools.stock.Stock.dividend_yield"><code class="name">var <span class="ident">dividend_yield</span></code></dt>
 <dd>
 <div class="desc"><p>Returns dividend yield, if available.</p></div>
@@ -334,11 +290,7 @@ def date(self):
 <pre><code class="python">@property
 def dividend_yield(self):
     &#34;&#34;&#34;Returns dividend yield, if available.&#34;&#34;&#34;
-    output = self.fundamentals.get(&#39;Dividend yield&#39;)
-    if output is not None:
-        output = output[0:-1]
-        output = float(output)
-    return output</code></pre>
+    return self.fundamentals.get(&#39;Dividend yield&#39;)</code></pre>
 </details>
 </dd>
 <dt id="marketools.stock.Stock.eps"><code class="name">var <span class="ident">eps</span></code></dt>
@@ -351,10 +303,7 @@ def dividend_yield(self):
 <pre><code class="python">@property
 def eps(self):
     &#34;&#34;&#34;Returns earning per share, if available.&#34;&#34;&#34;
-    output = self.fundamentals.get(&#39;EPS&#39;)
-    if output is not None:
-        output = float(output)
-    return output</code></pre>
+    return self.fundamentals.get(&#39;EPS&#39;)</code></pre>
 </details>
 </dd>
 <dt id="marketools.stock.Stock.fundamentals"><code class="name">var <span class="ident">fundamentals</span></code></dt>
@@ -370,6 +319,19 @@ def fundamentals(self):
     if not bool(self._fundamentals):
         self._fundamentals.get_fundamentals()
     return self._fundamentals</code></pre>
+</details>
+</dd>
+<dt id="marketools.stock.Stock.last"><code class="name">var <span class="ident">last</span></code></dt>
+<dd>
+<div class="desc"><p>Returns last price.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def last(self):
+    &#34;&#34;&#34;Returns last price.&#34;&#34;&#34;
+    return scrap_summary_table(self.ticker)[&#39;Last&#39;]</code></pre>
 </details>
 </dd>
 <dt id="marketools.stock.Stock.last_ohlc"><code class="name">var <span class="ident">last_ohlc</span></code></dt>
@@ -402,6 +364,19 @@ def ohlc(self):
     return self._ohlc.data</code></pre>
 </details>
 </dd>
+<dt id="marketools.stock.Stock.open"><code class="name">var <span class="ident">open</span></code></dt>
+<dd>
+<div class="desc"><p>Returns last open price.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def open(self):
+    &#34;&#34;&#34;Returns last open price.&#34;&#34;&#34;
+    return scrap_summary_table(self.ticker)[&#39;Open&#39;]</code></pre>
+</details>
+</dd>
 <dt id="marketools.stock.Stock.pbv"><code class="name">var <span class="ident">pbv</span></code></dt>
 <dd>
 <div class="desc"><p>Returns price–to-book ratio, if available.</p></div>
@@ -412,10 +387,7 @@ def ohlc(self):
 <pre><code class="python">@property
 def pbv(self):
     &#34;&#34;&#34;Returns price–to-book ratio, if available.&#34;&#34;&#34;
-    output = self.fundamentals.get(&#39;P/BV&#39;)
-    if output is not None:
-        output = float(output)
-    return output</code></pre>
+    return self.fundamentals.get(&#39;P/BV&#39;)</code></pre>
 </details>
 </dd>
 <dt id="marketools.stock.Stock.pe"><code class="name">var <span class="ident">pe</span></code></dt>
@@ -428,23 +400,7 @@ def pbv(self):
 <pre><code class="python">@property
 def pe(self):
     &#34;&#34;&#34;Returns price–earnings ratio, if available.&#34;&#34;&#34;
-    output = self.fundamentals.get(&#39;P/E&#39;)
-    if output is not None:
-        output = float(output)
-    return output</code></pre>
-</details>
-</dd>
-<dt id="marketools.stock.Stock.price"><code class="name">var <span class="ident">price</span></code></dt>
-<dd>
-<div class="desc"><p>Returns last price.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@property
-def price(self):
-    &#34;&#34;&#34;Returns last price.&#34;&#34;&#34;
-    return self.last_ohlc[&#39;Close&#39;]</code></pre>
+    return self.fundamentals.get(&#39;P/E&#39;)</code></pre>
 </details>
 </dd>
 <dt id="marketools.stock.Stock.stooq_plot_link"><code class="name">var <span class="ident">stooq_plot_link</span></code></dt>
@@ -463,28 +419,28 @@ def stooq_plot_link(self):
 </dd>
 <dt id="marketools.stock.Stock.volume"><code class="name">var <span class="ident">volume</span></code></dt>
 <dd>
-<div class="desc"><p>Returns last session volume.</p></div>
+<div class="desc"><p>Returns last volume.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@property
 def volume(self):
-    &#34;&#34;&#34;Returns last session volume.&#34;&#34;&#34;
-    return self.last_ohlc[&#39;Volume&#39;]</code></pre>
+    &#34;&#34;&#34;Returns last volume.&#34;&#34;&#34;
+    return scrap_summary_table(self.ticker)[&#39;Volume&#39;]</code></pre>
 </details>
 </dd>
 </dl>
 <h3>Methods</h3>
 <dl>
 <dt id="marketools.stock.Stock.mean_volume"><code class="name flex">
-<span>def <span class="ident">mean_volume</span></span>(<span>self, over_last: int)</span>
+<span>def <span class="ident">mean_volume</span></span>(<span>self, window: int)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Returns mean volume over given number of the most recent sessions.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>over_last</code></strong> :&ensp;<code>int</code></dt>
+<dt><strong><code>window</code></strong> :&ensp;<code>int</code></dt>
 <dd>number of recent stock market sessions the average should be
 calculated over</dd>
 </dl>
@@ -497,13 +453,13 @@ calculated over</dd>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def mean_volume(self, over_last: int):
+<pre><code class="python">def mean_volume(self, window: int):
     &#34;&#34;&#34;
     Returns mean volume over given number of the most recent sessions.
 
     Parameters
     ----------
-    over_last : int
+    window : int
         number of recent stock market sessions the average should be 
         calculated over
 
@@ -511,7 +467,7 @@ calculated over</dd>
     -------
     float
     &#34;&#34;&#34;
-    volume = self.ohlc.tail(over_last)[&#39;Volume&#39;]
+    volume = self.ohlc.tail(window)[&#39;Volume&#39;]
     output = volume.mean()
     return output</code></pre>
 </details>
@@ -537,16 +493,16 @@ calculated over</dd>
 <li>
 <h4><code><a title="marketools.stock.Stock" href="#marketools.stock.Stock">Stock</a></code></h4>
 <ul class="two-column">
-<li><code><a title="marketools.stock.Stock.date" href="#marketools.stock.Stock.date">date</a></code></li>
 <li><code><a title="marketools.stock.Stock.dividend_yield" href="#marketools.stock.Stock.dividend_yield">dividend_yield</a></code></li>
 <li><code><a title="marketools.stock.Stock.eps" href="#marketools.stock.Stock.eps">eps</a></code></li>
 <li><code><a title="marketools.stock.Stock.fundamentals" href="#marketools.stock.Stock.fundamentals">fundamentals</a></code></li>
+<li><code><a title="marketools.stock.Stock.last" href="#marketools.stock.Stock.last">last</a></code></li>
 <li><code><a title="marketools.stock.Stock.last_ohlc" href="#marketools.stock.Stock.last_ohlc">last_ohlc</a></code></li>
 <li><code><a title="marketools.stock.Stock.mean_volume" href="#marketools.stock.Stock.mean_volume">mean_volume</a></code></li>
 <li><code><a title="marketools.stock.Stock.ohlc" href="#marketools.stock.Stock.ohlc">ohlc</a></code></li>
+<li><code><a title="marketools.stock.Stock.open" href="#marketools.stock.Stock.open">open</a></code></li>
 <li><code><a title="marketools.stock.Stock.pbv" href="#marketools.stock.Stock.pbv">pbv</a></code></li>
 <li><code><a title="marketools.stock.Stock.pe" href="#marketools.stock.Stock.pe">pe</a></code></li>
-<li><code><a title="marketools.stock.Stock.price" href="#marketools.stock.Stock.price">price</a></code></li>
 <li><code><a title="marketools.stock.Stock.stooq_plot_link" href="#marketools.stock.Stock.stooq_plot_link">stooq_plot_link</a></code></li>
 <li><code><a title="marketools.stock.Stock.volume" href="#marketools.stock.Stock.volume">volume</a></code></li>
 </ul>

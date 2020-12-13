@@ -12,3 +12,5 @@ Release notes
 
 ### v0.x.x
 * adding function price_change into analysis sub-module
+* adding scrapers.py - function get_raw_summary_table and scrap_summary_table
+* refactoring Stock class

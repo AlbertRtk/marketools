@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.9.2" />
-<title>marketools.stqscraper.fundamentals API documentation</title>
+<title>marketools.stqscraper.scrapers API documentation</title>
 <meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
@@ -19,70 +19,95 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>marketools.stqscraper.fundamentals</code></h1>
+<h1 class="title">Module <code>marketools.stqscraper.scrapers</code></h1>
 </header>
 <section id="section-intro">
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">from . import DATA_DIR
-from datetime import datetime
+<pre><code class="python">import requests
 import pandas as pd
-import requests
-import os
-import csv
-from .scrapers import scrap_summary_table
+import re
 
 
-class Fundamentals(dict):
+def get_raw_summary_table(ticker):
     &#34;&#34;&#34;
-    Class Fundamentals
+    Downloads and returns raw summary table from Stooq.
+
+    Parameters
+    ----------
+    ticker : str
+        ticker of a stock
+    Returns
+    -------
+    pd.DataFrame
     &#34;&#34;&#34;
 
-    def __init__(self, ticker):
-        super().__init__()
-        self.ticker = ticker
+    url = f&#39;https://stooq.pl/q/g/?s={ticker}&#39;
+    html = requests.get(url).text
 
-    def get_fundamentals(self):
-        &#34;&#34;&#34;
-        Scraps from Stooq.com fundamental information for given ticker.
-        &#34;&#34;&#34;
+    # extracting table with summary
+    raw_table = pd.read_html(html)[0]
+    idx = raw_table.iloc[:, 0]
+    raw_table.set_index(idx, inplace=True)
 
-        update_required = True  # assuming that update will be required
-        file_path = os.path.join(DATA_DIR, f&#39;{self.ticker}_indicators.csv&#39;)
+    return raw_table
 
-        if os.path.exists(file_path):
-            timestamp_now = datetime.timestamp(datetime.now())
-            timestamp_up = os.path.getatime(file_path)  # CSV file modification time
 
-            if timestamp_now - timestamp_up &lt; 24 * 3600:
-                # do not update more often than once in 24 hours
-                with open(file_path, &#39;r&#39;) as f:
-                    reader = csv.DictReader(f)
-                    try:
-                        self.update(next(reader))
-                    except StopIteration:
-                        pass
-                update_required = False
-                # make sure that values are float
-                for k in self.keys():
-                    if self[k]:
-                        self[k] = float(self[k])
+def scrap_summary_table(ticker):
+    &#34;&#34;&#34;
+    Scraps summary table with information about given stock ticker. Returns 
+    dictionary with keys: Las - last price, Open - last open price, Volume - 
+    last volume, EPS - EPS, P/E - P/E, P/BV - P/BV, Dividend yield % - dividend
+    yield in percents. 
 
-        if update_required:
-            # data older than 24 hours - update
-            self.update(scrap_summary_table(self.ticker))
-            with open(file_path, &#39;w&#39;) as f:
-                writer = csv.DictWriter(f, self.keys())
-                writer.writeheader()
-                writer.writerow(self)
+    Parameters
+    ----------
+    ticker : str
+        ticker of a stock
+    Returns
+    -------
+    dict
+    &#34;&#34;&#34;
 
-        if bool(self) is False:
-            # no fundamental data (None or empty dict)
-            self.update()
+    # get raw table    
+    raw_table = get_raw_summary_table(ticker)
 
-    
+    # Stooq is Polish - translations needed
+    keys = {
+        &#39;Last&#39;: &#39;Kurs&#39;,
+        &#39;Open&#39;: &#39;Otwarcie&#39;,
+        &#39;Volume&#39;: &#39;Wolumen&#39;,
+        &#39;EPS&#39;: &#39;EPS (ttm)&#39;,
+        &#39;P/E&#39;: &#39;C/Z (ttm)&#39;,
+        &#39;P/BV&#39;: &#39;C/WK&#39;,
+        &#39;Dividend yield %&#39;: &#39;Stopa dywidendy&#39;
+    }
+
+    # creating and filling output dict 
+    output_dict = dict()
+    for k in keys:
+        try:
+            output_dict[k] = raw_table.loc[keys[k], 1]
+        except KeyError:
+            output_dict[k] = None
+
+    # remove currency from price using regex
+    m = re.search(r&#39;\d+(\.\d+)?&#39;, output_dict[&#39;Last&#39;])
+    output_dict[&#39;Last&#39;] = m.group(0)
+
+    # remove % from dividend yield
+    if output_dict[&#39;Dividend yield %&#39;]:
+        output_dict[&#39;Dividend yield %&#39;] = output_dict[&#39;Dividend yield %&#39;][:-1] 
+
+    for k in output_dict.keys():
+        if output_dict[k]:
+            output_dict[k] = float(output_dict[k])
+
+    return output_dict
+
+
 if __name__ == &#39;__main__&#39;:
     pass</code></pre>
 </details>
@@ -92,124 +117,129 @@ if __name__ == &#39;__main__&#39;:
 <section>
 </section>
 <section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="marketools.stqscraper.scrapers.get_raw_summary_table"><code class="name flex">
+<span>def <span class="ident">get_raw_summary_table</span></span>(<span>ticker)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Downloads and returns raw summary table from Stooq.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>ticker</code></strong> :&ensp;<code>str</code></dt>
+<dd>ticker of a stock</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>pd.DataFrame</code></dt>
+<dd>&nbsp;</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_raw_summary_table(ticker):
+    &#34;&#34;&#34;
+    Downloads and returns raw summary table from Stooq.
+
+    Parameters
+    ----------
+    ticker : str
+        ticker of a stock
+    Returns
+    -------
+    pd.DataFrame
+    &#34;&#34;&#34;
+
+    url = f&#39;https://stooq.pl/q/g/?s={ticker}&#39;
+    html = requests.get(url).text
+
+    # extracting table with summary
+    raw_table = pd.read_html(html)[0]
+    idx = raw_table.iloc[:, 0]
+    raw_table.set_index(idx, inplace=True)
+
+    return raw_table</code></pre>
+</details>
+</dd>
+<dt id="marketools.stqscraper.scrapers.scrap_summary_table"><code class="name flex">
+<span>def <span class="ident">scrap_summary_table</span></span>(<span>ticker)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Scraps summary table with information about given stock ticker. Returns
+dictionary with keys: Las - last price, Open - last open price, Volume -
+last volume, EPS - EPS, P/E - P/E, P/BV - P/BV, Dividend yield % - dividend
+yield in percents. </p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>ticker</code></strong> :&ensp;<code>str</code></dt>
+<dd>ticker of a stock</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>dict</code></dt>
+<dd>&nbsp;</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def scrap_summary_table(ticker):
+    &#34;&#34;&#34;
+    Scraps summary table with information about given stock ticker. Returns 
+    dictionary with keys: Las - last price, Open - last open price, Volume - 
+    last volume, EPS - EPS, P/E - P/E, P/BV - P/BV, Dividend yield % - dividend
+    yield in percents. 
+
+    Parameters
+    ----------
+    ticker : str
+        ticker of a stock
+    Returns
+    -------
+    dict
+    &#34;&#34;&#34;
+
+    # get raw table    
+    raw_table = get_raw_summary_table(ticker)
+
+    # Stooq is Polish - translations needed
+    keys = {
+        &#39;Last&#39;: &#39;Kurs&#39;,
+        &#39;Open&#39;: &#39;Otwarcie&#39;,
+        &#39;Volume&#39;: &#39;Wolumen&#39;,
+        &#39;EPS&#39;: &#39;EPS (ttm)&#39;,
+        &#39;P/E&#39;: &#39;C/Z (ttm)&#39;,
+        &#39;P/BV&#39;: &#39;C/WK&#39;,
+        &#39;Dividend yield %&#39;: &#39;Stopa dywidendy&#39;
+    }
+
+    # creating and filling output dict 
+    output_dict = dict()
+    for k in keys:
+        try:
+            output_dict[k] = raw_table.loc[keys[k], 1]
+        except KeyError:
+            output_dict[k] = None
+
+    # remove currency from price using regex
+    m = re.search(r&#39;\d+(\.\d+)?&#39;, output_dict[&#39;Last&#39;])
+    output_dict[&#39;Last&#39;] = m.group(0)
+
+    # remove % from dividend yield
+    if output_dict[&#39;Dividend yield %&#39;]:
+        output_dict[&#39;Dividend yield %&#39;] = output_dict[&#39;Dividend yield %&#39;][:-1] 
+
+    for k in output_dict.keys():
+        if output_dict[k]:
+            output_dict[k] = float(output_dict[k])
+
+    return output_dict</code></pre>
+</details>
+</dd>
+</dl>
 </section>
 <section>
-<h2 class="section-title" id="header-classes">Classes</h2>
-<dl>
-<dt id="marketools.stqscraper.fundamentals.Fundamentals"><code class="flex name class">
-<span>class <span class="ident">Fundamentals</span></span>
-<span>(</span><span>ticker)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Class Fundamentals</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class Fundamentals(dict):
-    &#34;&#34;&#34;
-    Class Fundamentals
-    &#34;&#34;&#34;
-
-    def __init__(self, ticker):
-        super().__init__()
-        self.ticker = ticker
-
-    def get_fundamentals(self):
-        &#34;&#34;&#34;
-        Scraps from Stooq.com fundamental information for given ticker.
-        &#34;&#34;&#34;
-
-        update_required = True  # assuming that update will be required
-        file_path = os.path.join(DATA_DIR, f&#39;{self.ticker}_indicators.csv&#39;)
-
-        if os.path.exists(file_path):
-            timestamp_now = datetime.timestamp(datetime.now())
-            timestamp_up = os.path.getatime(file_path)  # CSV file modification time
-
-            if timestamp_now - timestamp_up &lt; 24 * 3600:
-                # do not update more often than once in 24 hours
-                with open(file_path, &#39;r&#39;) as f:
-                    reader = csv.DictReader(f)
-                    try:
-                        self.update(next(reader))
-                    except StopIteration:
-                        pass
-                update_required = False
-                # make sure that values are float
-                for k in self.keys():
-                    if self[k]:
-                        self[k] = float(self[k])
-
-        if update_required:
-            # data older than 24 hours - update
-            self.update(scrap_summary_table(self.ticker))
-            with open(file_path, &#39;w&#39;) as f:
-                writer = csv.DictWriter(f, self.keys())
-                writer.writeheader()
-                writer.writerow(self)
-
-        if bool(self) is False:
-            # no fundamental data (None or empty dict)
-            self.update()</code></pre>
-</details>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li>builtins.dict</li>
-</ul>
-<h3>Methods</h3>
-<dl>
-<dt id="marketools.stqscraper.fundamentals.Fundamentals.get_fundamentals"><code class="name flex">
-<span>def <span class="ident">get_fundamentals</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Scraps from Stooq.com fundamental information for given ticker.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def get_fundamentals(self):
-    &#34;&#34;&#34;
-    Scraps from Stooq.com fundamental information for given ticker.
-    &#34;&#34;&#34;
-
-    update_required = True  # assuming that update will be required
-    file_path = os.path.join(DATA_DIR, f&#39;{self.ticker}_indicators.csv&#39;)
-
-    if os.path.exists(file_path):
-        timestamp_now = datetime.timestamp(datetime.now())
-        timestamp_up = os.path.getatime(file_path)  # CSV file modification time
-
-        if timestamp_now - timestamp_up &lt; 24 * 3600:
-            # do not update more often than once in 24 hours
-            with open(file_path, &#39;r&#39;) as f:
-                reader = csv.DictReader(f)
-                try:
-                    self.update(next(reader))
-                except StopIteration:
-                    pass
-            update_required = False
-            # make sure that values are float
-            for k in self.keys():
-                if self[k]:
-                    self[k] = float(self[k])
-
-    if update_required:
-        # data older than 24 hours - update
-        self.update(scrap_summary_table(self.ticker))
-        with open(file_path, &#39;w&#39;) as f:
-            writer = csv.DictWriter(f, self.keys())
-            writer.writeheader()
-            writer.writerow(self)
-
-    if bool(self) is False:
-        # no fundamental data (None or empty dict)
-        self.update()</code></pre>
-</details>
-</dd>
-</dl>
-</dd>
-</dl>
 </section>
 </article>
 <nav id="sidebar">
@@ -223,14 +253,10 @@ if __name__ == &#39;__main__&#39;:
 <li><code><a title="marketools.stqscraper" href="index.html">marketools.stqscraper</a></code></li>
 </ul>
 </li>
-<li><h3><a href="#header-classes">Classes</a></h3>
-<ul>
-<li>
-<h4><code><a title="marketools.stqscraper.fundamentals.Fundamentals" href="#marketools.stqscraper.fundamentals.Fundamentals">Fundamentals</a></code></h4>
+<li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="marketools.stqscraper.fundamentals.Fundamentals.get_fundamentals" href="#marketools.stqscraper.fundamentals.Fundamentals.get_fundamentals">get_fundamentals</a></code></li>
-</ul>
-</li>
+<li><code><a title="marketools.stqscraper.scrapers.get_raw_summary_table" href="#marketools.stqscraper.scrapers.get_raw_summary_table">get_raw_summary_table</a></code></li>
+<li><code><a title="marketools.stqscraper.scrapers.scrap_summary_table" href="#marketools.stqscraper.scrapers.scrap_summary_table">scrap_summary_table</a></code></li>
 </ul>
 </li>
 </ul>
