@@ -1,6 +1,9 @@
 Release notes
 =============
 
+### v0.3.2
+* bug fix in analysis/volume.py
+
 ### v0.3.1
 * bug fix in stockquotes.py
 
