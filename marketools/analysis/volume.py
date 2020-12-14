@@ -22,7 +22,7 @@ def mean_volume_on_date(volume_data,
     float
     """
     
-    volume = volume_data[:day].tail(over_last)['Volume']
+    volume = volume_data[:day].tail(window)['Volume']
     output = volume.mean()
     
     return output
