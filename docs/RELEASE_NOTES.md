@@ -1,6 +1,9 @@
 Release notes
 =============
 
+### v0.4.0
+* adding Simulator class
+
 ### v0.3.2
 * bug fix in analysis/volume.py
 
