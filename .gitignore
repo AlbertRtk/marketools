@@ -134,3 +134,6 @@ dmypy.json
 
 .stock_market_data
 sandbox.py
+/check_strategy_performance.py
+/daily_analysis.py
+/stock_index.py

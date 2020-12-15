@@ -125,6 +125,9 @@ class Wallet(Commission):
 
         return self
 
+    def commission(self, value: float) -> float:
+        return self(value)
+
     def __get_stocks_index(self, name: str):
         idx = self.stocks.index[self.stocks['Name'] == name].tolist()
         idx = idx[0] if idx else None
@@ -157,7 +160,7 @@ class Wallet(Commission):
                               'Price': [price]})
         self.__sub__(stock)
 
-    def sell_all(self, name: str, price: float) -> None:
+    def sell_all(self, name: str, price: float) -> float:
         volume = self.get_volume_of_stocks(name)
         self.sell(name, volume, price)
         return volume
