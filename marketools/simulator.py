@@ -120,10 +120,6 @@ class Simulator:
                         volume = self.wallet.sell_all(tck, price)
                         print_color(info_str(day_str, 'S', tck, volume, price))
 
-            # call decorated function - strategy function
-            stocks_to_buy, stocks_to_sell = strategy_function(
-                day=day, traded_stocks=self.traded_stocks_data, *args, **kwargs)
-
             # if auto trading is active, check if price of any stock in the
             # wallet crossed take profit or stop loss price; if yes then sell it
             # immediately
@@ -159,32 +155,24 @@ class Simulator:
                         volume = self.wallet.sell_all(tck, price)
                         print_red(info_str(day_str, 'SL', tck, volume, price))
 
+            # update the price to the close price
             for tck in self.wallet.list_stocks():
-                # update the price to the closing price
                 ohlc = self.traded_stocks_data[tck].ohlc
                 price = ohlc['Close'].get(day, None)
-
                 if price:
                     self.wallet.update_price(tck, price)
-
-                # if auto trading is not active, then take profit / stop loss
-                # the next day
-                if not self.live_trading:
-
-                    # take profit the next day
-                    if (self.take_profit > 0) \
-                            and (self.wallet.change(tck) > self.take_profit):
-                        stocks_to_sell.append(tck)
-
-                    # stop loss the next day - price below purchase price
-                    if (self.stop_loss > 0)\
-                            and (self.wallet.change(tck) < -self.stop_loss):
-                        stocks_to_sell.append(tck)
 
             # save history of the wallet
             self.wallet_history = self.wallet_history.append(
                 {'Date': day, 'Wallet state': self.wallet.total_value},
                 ignore_index=True)
+
+            # call strategy function
+            stocks_to_buy, stocks_to_sell = strategy_function(
+                day=day,
+                wallet=self.wallet,
+                traded_stocks=self.traded_stocks_data,
+                *args, **kwargs)
 
         return self.wallet_history
 
