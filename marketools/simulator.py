@@ -21,22 +21,28 @@ class Simulator:
         Wallet for trading
     max_positions : int
         maximum number of different stocks in the wallet
-    take_profit : float
-        if the price of a stock increases by this fraction, it will be sold;
-        if equal 0 - take profit is deactivated (default)
-    stop_loss : float
-        if the price of a stock decreases by this fraction (comparing to the
-        purchase price), it will be sold;
-        if equal 0 - stop loss is deactivated (default)
-    live_trading : boolean
+    auto_trading : boolean
         if True selling immediately when stop loss / take profit is reached is
         simulated
+    take_profit : float
+        if the price of a stock increases by this fraction, it will be sold
+    stop_loss : float
+        if the price of a stock decreases by this fraction (comparing to the
+        purchase price), it will be sold
+    show_plot : boolean
+        if True, shows animated plot with wallet total value over time during
+        simulation (default False)
     """
 
-    def __init__(self, time_range: pd.DatetimeIndex, traded_stocks_data: dict,
-                 wallet: Wallet, max_positions: int = 5,
-                 take_profit: float = 0.0, stop_loss: float = 0.0,
-                 live_trading: bool = False, show_plot: bool = False):
+    def __init__(self,
+                 time_range: pd.DatetimeIndex,
+                 traded_stocks_data: dict,
+                 wallet: Wallet,
+                 max_positions: int = 5,
+                 auto_trading: bool = False,
+                 take_profit: float = 0.0,
+                 stop_loss: float = 0.0,
+                 show_plot: bool = False):
 
         self.time_range = time_range
         self.traded_stocks_data = traded_stocks_data
@@ -45,7 +51,7 @@ class Simulator:
         self.max_positions = max_positions
         self.take_profit = take_profit
         self.stop_loss = stop_loss
-        self.live_trading = live_trading
+        self.auto_trading = auto_trading
         self.wallet_history = pd.DataFrame(columns=['Date', 'Wallet state'])
         self.show_plot = show_plot
 
@@ -85,84 +91,20 @@ class Simulator:
 
             # Buy selected day before. Loop over list, order can be important
             # here. Strategy can sort relevant stocks - high priority first.
-            for tck in stocks_to_buy:
-
-                if not self.wallet.get_volume_of_stocks(tck):
-                    price = self.traded_stocks_data[tck].ohlc['Open']\
-                        .get(day, None)
-
-                    if price:
-                        total = calculate_investment_value(
-                            self.wallet, self.max_positions)
-
-                        # needs some money to pay commission
-                        total = total - self.wallet.commission(total)
-                        volume = math.floor(total / price)
-
-                        if volume > 0:
-                            self.wallet.buy(tck, volume, price)
-                            print(info_str(day_str, 'B', tck, volume, price))
-                            # make sure to not sell it the same day
-
-                            if tck in stocks_to_sell:
-                                stocks_to_sell.remove(tck)
+            self.__buy_selected_stocks(day, stocks_to_buy)
 
             # Sell selected day before. List to set, we don't care here about
             # the order. Set will remove duplicates.
-            for tck in set(stocks_to_sell):
-
-                if self.wallet.get_volume_of_stocks(tck):
-                    price = self.traded_stocks_data[tck].ohlc['Open']\
-                        .get(day, None)
-
-                    if price:
-                        print_color = determine_print_color_from_prices(
-                            price,
-                            self.wallet.get_purchase_price_of_stocks(tck))
-                        volume = self.wallet.sell_all(tck, price)
-                        print_color(info_str(day_str, 'S', tck, volume, price))
+            self.__sell_selected_stocks(day, stocks_to_sell)
 
             # if auto trading is active, check if price of any stock in the
             # wallet crossed take profit or stop loss price; if yes then sell it
             # immediately
-            if self.live_trading:
-
-                for tck in self.wallet.list_stocks().copy():
-                    price_max = self.traded_stocks_data[tck].ohlc['High']\
-                        .get(day, None)
-
-                    if price_max:
-                        self.wallet.update_price(tck, price_max)
-
-                    if self.wallet.change(tck) > self.take_profit:
-                        # selling it immediately
-                        price = self.wallet.get_purchase_price_of_stocks(tck)\
-                                * (1 + self.take_profit)
-                        price = round(price, 2)
-                        volume = self.wallet.sell_all(tck, price)
-                        print_green(info_str(day_str, 'TP', tck, volume, price))
-                        continue
-
-                    price_min = self.traded_stocks_data[tck].ohlc['Low']\
-                        .get(day, None)
-
-                    if price_min:
-                        self.wallet.update_price(tck, price_min)
-
-                    if self.wallet.change(tck) < -self.stop_loss:
-                        # selling it immediately
-                        price = self.wallet.get_purchase_price_of_stocks(tck)\
-                                * (1 - self.stop_loss)
-                        price = round(price, 2)
-                        volume = self.wallet.sell_all(tck, price)
-                        print_red(info_str(day_str, 'SL', tck, volume, price))
+            if self.auto_trading:
+                self.__auto_traiding_tp_sl(day)
 
             # update the price to the close price
-            for tck in self.wallet.list_stocks():
-                ohlc = self.traded_stocks_data[tck].ohlc
-                price = ohlc['Close'].get(day, None)
-                if price:
-                    self.wallet.update_price(tck, price)
+            self.__update_wallet_stock_prices_to_close(day)
 
             # save history of the wallet
             self.wallet_history = self.wallet_history.append(
@@ -171,12 +113,7 @@ class Simulator:
 
             # show animated plot
             if self.show_plot:
-                plt.clf()
-                plt.plot(self.wallet_history['Date'], self.wallet_history['Wallet state'])
-                plt.xlim([self.time_range[0], self.time_range[-1]])
-                plt.title(f'Wallet total value: {round(self.wallet.total_value, 2)}')
-                plt.grid()
-                plt.pause(1e-15)
+                self.__plot_wallet_total_value()
 
             # call strategy function
             stocks_to_buy, stocks_to_sell = strategy_function(
@@ -189,6 +126,135 @@ class Simulator:
             plt.show()
 
         return self.wallet_history
+
+    def __buy_selected_stocks(self, day, stocks_to_buy):
+        """
+        Buys stocks from the list.
+
+        Parameters
+        ----------
+        day : str
+            string with date (yyyy-mm-dd)
+        stocks_to_buy : list
+            list with tickers of stocks to buy
+
+        Returns
+        -------
+        None
+        """
+        for tck in stocks_to_buy:
+            if not self.wallet.get_volume_of_stocks(tck):
+                price = self.traded_stocks_data[tck].ohlc['Open'].get(day, None)
+
+                if price:
+                    total = calculate_investment_value(self.wallet,
+                                                       self.max_positions)
+                    # needs some money to pay commission
+                    total = total - self.wallet.commission(total)
+                    volume = math.floor(total / price)
+
+                    if volume > 0:
+                        self.wallet.buy(tck, volume, price)
+                        print(info_str(day.strftime('%Y-%m-%d'), 'B', tck, volume, price))
+
+    def __sell_selected_stocks(self, day, stocks_to_sell):
+        """
+        Sells stocks from the list.
+
+        Parameters
+        ----------
+        day : str
+            string with date (yyyy-mm-dd)
+        stocks_to_sell : list
+            list with tickers of stocks to buy
+
+        Returns
+        -------
+        None
+        """
+        for tck in set(stocks_to_sell):
+            if self.wallet.get_volume_of_stocks(tck):
+                price = self.traded_stocks_data[tck].ohlc['Open'].get(day, None)
+
+                if price:
+                    print_color = determine_print_color_from_prices(
+                        price,
+                        self.wallet.get_purchase_price_of_stocks(tck))
+                    volume = self.wallet.sell_all(tck, price)
+                    print_color(info_str(day.strftime('%Y-%m-%d'), 'S', tck, volume, price))
+
+    def __update_wallet_stock_prices_to_close(self, day):
+        """
+        Updates prices of stocks in the wallet to close price from given day.
+
+        Parameters
+        ----------
+        day : str
+            string with date (yyyy-mm-dd)
+
+        Returns
+        -------
+        None
+        """
+        for tck in self.wallet.list_stocks():
+            ohlc = self.traded_stocks_data[tck].ohlc
+            price = ohlc['Close'].get(day, None)
+            if price:
+                self.wallet.update_price(tck, price)
+
+    def __plot_wallet_total_value(self):
+        """
+        Shows animated plot of wallet total value over time during simulation.
+        """
+        plt.clf()
+        plt.plot(self.wallet_history['Date'], self.wallet_history['Wallet state'])
+        plt.xlim([self.time_range[0], self.time_range[-1]])
+        plt.title(f'Wallet total value: {round(self.wallet.total_value, 2)}')
+        plt.grid()
+        plt.pause(1e-15)
+
+    def __auto_traiding_tp_sl(self, day):
+        """
+        Take profit and stop loss.
+
+        Parameters
+        ----------
+        day : str
+            string with date (yyyy-mm-dd)
+
+        Returns
+        -------
+        None
+        """
+        for tck in self.wallet.list_stocks().copy():
+            price_max = self.traded_stocks_data[tck].ohlc['High'] \
+                .get(day, None)
+
+            if price_max:
+                self.wallet.update_price(tck, price_max)
+
+            if self.wallet.change(tck) > self.take_profit:
+                # selling it immediately
+                price = self.wallet.get_purchase_price_of_stocks(tck) \
+                        * (1 + self.take_profit)
+                price = round(price, 2)
+                volume = self.wallet.sell_all(tck, price)
+                print_green(info_str(day.strftime('%Y-%m-%d'), 'TP', tck, volume, price))
+                continue
+
+            price_min = self.traded_stocks_data[tck].ohlc['Low'] \
+                .get(day, None)
+
+            if price_min:
+                self.wallet.update_price(tck, price_min)
+
+            if self.wallet.change(tck) < -self.stop_loss:
+                # selling it immediately
+                price = self.wallet.get_purchase_price_of_stocks(tck) \
+                        * (1 - self.stop_loss)
+                price = round(price, 2)
+                volume = self.wallet.sell_all(tck, price)
+                print_red(info_str(day.strftime('%Y-%m-%d'), 'SL', tck, volume, price))
 
 
 def simulator(time_range: pd.DatetimeIndex,
