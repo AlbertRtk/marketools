@@ -133,8 +133,8 @@ class Simulator:
 
         Parameters
         ----------
-        day : str
-            string with date (yyyy-mm-dd)
+        day : datetime.date
+            date
         stocks_to_buy : list
             list with tickers of stocks to buy
 
@@ -163,8 +163,8 @@ class Simulator:
 
         Parameters
         ----------
-        day : str
-            string with date (yyyy-mm-dd)
+        day : datetime.date
+            date
         stocks_to_sell : list
             list with tickers of stocks to buy
 
