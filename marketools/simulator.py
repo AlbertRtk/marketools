@@ -110,16 +110,16 @@ class Simulator:
                 {'Date': day, 'Wallet state': self.wallet.total_value},
                 ignore_index=True)
 
-            # show animated plot
-            if self.show_plot:
-                self.__plot_wallet_total_value()
-
             # call strategy function
             stocks_to_buy, stocks_to_sell = strategy_function(
                 day=day,
                 wallet=self.wallet,
                 traded_stocks=self.traded_stocks_data,
                 *args, **kwargs)
+
+            # show animated plot
+            if self.show_plot:
+                self.__plot_wallet_total_value()
 
         if self.show_plot:
             plt.show()
