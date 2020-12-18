@@ -1,6 +1,7 @@
 import math
 import warnings
 import pandas as pd
+import matplotlib.pyplot as plt
 from marketools.wallet import calculate_investment_value, Wallet
 from marketools.extra_print import print_green, print_red, \
     determine_print_color_from_prices, info_str
@@ -35,7 +36,7 @@ class Simulator:
     def __init__(self, time_range: pd.DatetimeIndex, traded_stocks_data: dict,
                  wallet: Wallet, max_positions: int = 5,
                  take_profit: float = 0.0, stop_loss: float = 0.0,
-                 live_trading: bool = False):
+                 live_trading: bool = False, show_plot: bool = False):
 
         self.time_range = time_range
         self.traded_stocks_data = traded_stocks_data
@@ -46,6 +47,7 @@ class Simulator:
         self.stop_loss = stop_loss
         self.live_trading = live_trading
         self.wallet_history = pd.DataFrame(columns=['Date', 'Wallet state'])
+        self.show_plot = show_plot
 
     def reset(self) -> None:
         """
@@ -167,12 +169,24 @@ class Simulator:
                 {'Date': day, 'Wallet state': self.wallet.total_value},
                 ignore_index=True)
 
+            # show animated plot
+            if self.show_plot:
+                plt.clf()
+                plt.plot(self.wallet_history['Date'], self.wallet_history['Wallet state'])
+                plt.xlim([self.time_range[0], self.time_range[-1]])
+                plt.title(f'Wallet total value: {round(self.wallet.total_value, 2)}')
+                plt.grid()
+                plt.pause(1e-15)
+
             # call strategy function
             stocks_to_buy, stocks_to_sell = strategy_function(
                 day=day,
                 wallet=self.wallet,
                 traded_stocks=self.traded_stocks_data,
                 *args, **kwargs)
+
+        if self.show_plot:
+            plt.show()
 
         return self.wallet_history
 
