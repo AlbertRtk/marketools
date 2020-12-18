@@ -87,7 +87,6 @@ class Simulator:
         stocks_to_sell = []
 
         for day in self.time_range:
-            day_str = day.strftime('%Y-%m-%d')
 
             # Buy selected day before. Loop over list, order can be important
             # here. Strategy can sort relevant stocks - high priority first.
