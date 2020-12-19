@@ -19,8 +19,6 @@ class Simulator:
         a dictionary with stocks.stock.Stock instances
     wallet : marketools.Wallet
         Wallet for trading
-    max_positions : int
-        maximum number of different stocks in the wallet
     auto_trading : boolean
         if True selling immediately when stop loss / take profit is reached is
         simulated
@@ -38,7 +36,6 @@ class Simulator:
                  time_range: pd.DatetimeIndex,
                  traded_stocks_data: dict,
                  wallet: Wallet,
-                 max_positions: int = 5,
                  auto_trading: bool = False,
                  take_profit: float = 0.0,
                  stop_loss: float = 0.0,
@@ -48,7 +45,6 @@ class Simulator:
         self.traded_stocks_data = traded_stocks_data
         self.wallet = wallet
         self.wallet_init_value = wallet.total_value
-        self.max_positions = max_positions
         self.take_profit = take_profit
         self.stop_loss = stop_loss
         self.auto_trading = auto_trading
@@ -83,7 +79,7 @@ class Simulator:
         pandas.DataFrame
         """
 
-        stocks_to_buy = []
+        stocks_to_buy = dict()
         stocks_to_sell = []
 
         for day in self.time_range:
@@ -134,27 +130,39 @@ class Simulator:
         ----------
         day : datetime.date
             date
-        stocks_to_buy : list
-            list with tickers of stocks to buy
+        stocks_to_buy : dict
+            dict with tickers of stocks to buy; keys - tickers, values - sets
+            (volume_to_buy, price_limit), if price_limit is None the stock will
+            be purchase with open price
 
         Returns
         -------
         None
         """
-        for tck in stocks_to_buy:
+        for tck, buy in stocks_to_buy.items():
             if not self.wallet.get_volume_of_stocks(tck):
-                price = self.traded_stocks_data[tck].ohlc['Open'].get(day, None)
+                open_price = self.traded_stocks_data[tck].ohlc['Open'].get(day, None)
+                low_price = self.traded_stocks_data[tck].ohlc['Low'].get(day, None)
 
-                if price:
-                    total = calculate_investment_value(self.wallet,
-                                                       self.max_positions)
-                    # needs some money to pay commission
-                    total = total - self.wallet.commission(total)
-                    volume = math.floor(total / price)
+                volume = buy[0]
+                price_limit = buy[1]
 
-                    if volume > 0:
-                        self.wallet.buy(tck, volume, price)
-                        print(info_str(day.strftime('%Y-%m-%d'), 'B', tck, volume, price))
+                if price_limit:
+                    use_open_price = open_price < price_limit
+                else:
+                    # no price_limit - buy for any price
+                    use_open_price = True
+
+                if open_price and use_open_price:
+                    price = open_price
+                elif low_price and (low_price < price_limit):
+                    price = price_limit
+                else:
+                    price = None
+
+                if price and (volume > 0):
+                    self.wallet.buy(tck, volume, price)
+                    print(info_str(day.strftime('%Y-%m-%d'), 'B', tck, volume, price))
 
     def __sell_selected_stocks(self, day, stocks_to_sell):
         """
