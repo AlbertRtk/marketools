@@ -140,29 +140,28 @@ class Simulator:
         None
         """
         for tck, buy in stocks_to_buy.items():
-            if not self.wallet.get_volume_of_stocks(tck):
-                open_price = self.traded_stocks_data[tck].ohlc['Open'].get(day, None)
-                low_price = self.traded_stocks_data[tck].ohlc['Low'].get(day, None)
+            open_price = self.traded_stocks_data[tck].ohlc['Open'].get(day, None)
+            low_price = self.traded_stocks_data[tck].ohlc['Low'].get(day, None)
 
-                volume = buy[0]
-                price_limit = buy[1]
+            volume = buy[0]
+            price_limit = buy[1]
 
-                if price_limit:
-                    use_open_price = open_price < price_limit
-                else:
-                    # no price_limit - buy for any price
-                    use_open_price = True
+            if price_limit:
+                use_open_price = open_price < price_limit
+            else:
+                # no price_limit - buy for any price
+                use_open_price = True
 
-                if open_price and use_open_price:
-                    price = open_price
-                elif low_price and (low_price < price_limit):
-                    price = price_limit
-                else:
-                    price = None
+            if open_price and use_open_price:
+                price = open_price
+            elif low_price and (low_price < price_limit):
+                price = price_limit
+            else:
+                price = None
 
-                if price and (volume > 0):
-                    print(info_str(day.strftime('%Y-%m-%d'), 'B', tck, volume, price))
-                    self.wallet.buy(tck, volume, price)
+            if price and (volume > 0):
+                print(info_str(day.strftime('%Y-%m-%d'), 'B', tck, volume, price))
+                self.wallet.buy(tck, volume, price)
 
     def __sell_selected_stocks(self, day, stocks_to_sell):
         """
