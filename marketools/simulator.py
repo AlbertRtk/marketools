@@ -80,7 +80,7 @@ class Simulator:
         """
 
         stocks_to_buy = dict()
-        stocks_to_sell = []
+        stocks_to_sell = dict()
 
         for day in self.time_range:
 
@@ -133,7 +133,7 @@ class Simulator:
         stocks_to_buy : dict
             dict with tickers of stocks to buy; keys - tickers, values - sets
             (volume_to_buy, price_limit), if price_limit is None the stock will
-            be purchase with open price
+            be purchased with open price
 
         Returns
         -------
@@ -161,8 +161,8 @@ class Simulator:
                     price = None
 
                 if price and (volume > 0):
-                    self.wallet.buy(tck, volume, price)
                     print(info_str(day.strftime('%Y-%m-%d'), 'B', tck, volume, price))
+                    self.wallet.buy(tck, volume, price)
 
     def __sell_selected_stocks(self, day, stocks_to_sell):
         """
@@ -172,23 +172,42 @@ class Simulator:
         ----------
         day : datetime.date
             date
-        stocks_to_sell : list
-            list with tickers of stocks to buy
+        stocks_to_sell : dict
+            dict with tickers of stocks to sell; keys - tickers, values - sets
+            (volume_to_sell, price_limit), if price_limit is None the stock will
+            be sold with open price
 
         Returns
         -------
         None
         """
-        for tck in set(stocks_to_sell):
+        for tck, sell in stocks_to_sell.items():
             if self.wallet.get_volume_of_stocks(tck):
-                price = self.traded_stocks_data[tck].ohlc['Open'].get(day, None)
+                open_price = self.traded_stocks_data[tck].ohlc['Open'].get(day, None)
+                high_price = self.traded_stocks_data[tck].ohlc['Open'].get(day, None)
 
-                if price:
+                volume = sell[0]
+                price_limit = sell[1]
+
+                if price_limit:
+                    use_open_price = open_price > price_limit
+                else:
+                    # no price_limit - sell for any price
+                    use_open_price = True
+
+                if open_price and use_open_price:
+                    price = open_price
+                elif high_price and (high_price > price_limit):
+                    price = price_limit
+                else:
+                    price = None
+
+                if price and (volume > 0):
                     print_color = determine_print_color_from_prices(
                         price,
                         self.wallet.get_purchase_price_of_stocks(tck))
-                    volume = self.wallet.sell_all(tck, price)
                     print_color(info_str(day.strftime('%Y-%m-%d'), 'S', tck, volume, price))
+                    self.wallet.sell(tck, volume, price)
 
     def __update_wallet_stock_prices_to_close(self, day):
         """
