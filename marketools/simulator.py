@@ -159,7 +159,9 @@ class Simulator:
             else:
                 price = None
 
-            if price and (volume > 0):
+            value = price * volume
+            value += self.wallet.commission(value)
+            if price and (volume > 0) and (self.wallet.money > value):
                 print(info_str(day.strftime('%Y-%m-%d'), 'B', tck, volume, price))
                 self.wallet.buy(tck, volume, price)
 
