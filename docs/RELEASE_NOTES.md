@@ -1,6 +1,9 @@
 Release notes
 =============
 
+## v0.5.0
+* removing simulator - the package should focus on analysis tools only
+
 ### v0.4.0
 * adding Simulator class
 

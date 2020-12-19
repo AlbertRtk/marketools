@@ -26,7 +26,6 @@ git clone https://github.com/AlbertRtk/marketools.git
 ## Documentation
 * [Documentation](https://albertrtk.github.io/marketools/docs/html/marketools/index.html)
     * [analysis](https://albertrtk.github.io/marketools/docs/html/marketools/analysis/index.html)
-    * [simulator](https://albertrtk.github.io/marketools/docs/html/marketools/simulator.html)
     * [stock](https://albertrtk.github.io/marketools/docs/html/marketools/stock.html)
     * [stqscraper](https://albertrtk.github.io/marketools/docs/html/marketools/stqscraper/index.html)
 
