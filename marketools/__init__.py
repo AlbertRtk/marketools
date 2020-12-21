@@ -23,3 +23,11 @@ def store_data():
     STORE_DATA = True
     store_scraped_data()
     create_data_storage_dir()
+
+
+def get_storage_status():
+    return STORE_DATA
+
+
+def get_storage_dir():
+    return DATA_DIR

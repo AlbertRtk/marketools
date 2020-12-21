@@ -1,4 +1,4 @@
-from . import STORE_DWL_DATA, DWL_DATA_DIR
+from . import get_dwl_storage_status, get_dwl_storage_dir
 import pandas as pd
 import numpy as np
 from os import path
@@ -41,8 +41,8 @@ class StockQuotes:
 
     @property
     def csv_file_path(self):
-        if STORE_DWL_DATA:
-            output = path.join(DWL_DATA_DIR, f'{self.ticker}_ohcl.csv')
+        if get_dwl_storage_status():
+            output = path.join(get_dwl_storage_dir(), f'{self.ticker}_ohcl.csv')
         else:
             output = None
         return output
@@ -71,7 +71,7 @@ class StockQuotes:
         expected_ohlc_time = time_now - timedelta(days=delta_days)
 
         # file with data for ticker exists
-        if STORE_DWL_DATA and path.exists(self.csv_file_path):
+        if get_dwl_storage_status() and path.exists(self.csv_file_path):
             timestamp_now = datetime.timestamp(time_now)
             timestamp_up = path.getatime(self.csv_file_path)  # CSV file modification time
 
@@ -91,7 +91,7 @@ class StockQuotes:
                 # Updated data downloaded - update output
                 output = new_output
                 # save to CSV
-                if STORE_DWL_DATA:
+                if get_dwl_storage_status():
                     new_output.to_csv(self.csv_file_path)
             else:
                 # Update error (Stooq: Exceeded the daily hits limit) 

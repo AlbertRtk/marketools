@@ -23,3 +23,11 @@ def store_analysis_data():
     STORE_ANALYSIS_DATA = True
     if not os.path.exists(ANALYSIS_DATA_DIR):
         os.mkdir(ANALYSIS_DATA_DIR)
+
+
+def get_analysis_storage_status():
+    return STORE_ANALYSIS_DATA
+
+
+def get_analysis_storage_dir():
+    return ANALYSIS_DATA_DIR
