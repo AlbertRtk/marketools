@@ -1,6 +1,12 @@
 from .stqscraper.fundamentals import Fundamentals
 from .stqscraper.stockquotes import StockQuotes
 from .stqscraper.scrapers import scrap_summary_table
+from .analysis import heikinashi
+from . import get_storage_dir, get_storage_status
+from datetime import datetime
+import pandas as pd
+import numpy as np
+import os
 
 
 class Stock:
@@ -106,6 +112,31 @@ class Stock:
         """
         volume = self.ohlc.tail(window)['Volume']
         output = volume.mean()
+        return output
+
+    def heikinashi(self):
+        # read from file
+        file_path = os.path.join(get_storage_dir(), f'{self.ticker}_heikinashi.csv')
+        use_storage = get_storage_status()
+
+        if use_storage and os.path.exists(file_path):
+            # read csv
+            output = pd.read_csv(file_path,
+                                 index_col='Date',
+                                 parse_dates=['Date'],
+                                 date_parser=lambda x: datetime.strptime(x, '%Y-%m-%d'))
+            output = output.astype(np.float64)
+            # check is update needed - ohlc.index[-1] == output.index[-1]
+            # if update needed - update
+        else:
+            # calculate Heikin-Ashi
+            output = heikinashi(self.ohlc)
+
+            if use_storage:
+                # save to csv
+                pass
+            pass
+
         return output
 
 

@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 
-def heikinashi(ohlc: pd.DataFrame) -> pd.DataFrame:
+def heikinashi(ohlc: pd.DataFrame, first_open: float = None) -> pd.DataFrame:
     """
     Returns DataFrame with Heikin-Ashi calculated for given input OHLC values.
 
@@ -10,6 +10,8 @@ def heikinashi(ohlc: pd.DataFrame) -> pd.DataFrame:
     ----------
     ohlc :pd.DataFrame
         DataFrame with OHLC data
+    first_open : float
+        ...
 
     Returns
     -------
@@ -20,7 +22,11 @@ def heikinashi(ohlc: pd.DataFrame) -> pd.DataFrame:
 
     output['Close'] = ohlc[['Open', 'High', 'Low', 'Close']].mean(axis=1)
 
-    output.loc[ohlc.index[0], 'Open'] = ohlc.loc[ohlc.index[0], 'Open']
+    if first_open is None:
+        output.loc[ohlc.index[0], 'Open'] = ohlc.loc[ohlc.index[0], 'Open']
+    else:
+        output.loc[ohlc.index[0], 'Open'] = first_open
+
     next_open = None
     for idx, val in output.iterrows():
         if next_open is not None:
