@@ -1,9 +1,6 @@
-from .stqscraper import DATA_DIR
 from .stqscraper.fundamentals import Fundamentals
 from .stqscraper.stockquotes import StockQuotes
 from .stqscraper.scrapers import scrap_summary_table
-import pandas as pd
-import os
 
 
 class Stock:

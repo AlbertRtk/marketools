@@ -1,10 +1,9 @@
-from . import DATA_DIR
+from . import get_dwl_storage_status, get_dwl_storage_dir
 import pandas as pd
 import numpy as np
 from os import path
 from urllib.request import urlretrieve
 from datetime import datetime, timedelta
-from .scrapers import scrap_summary_table
 
 
 def read_ohlcv_from_csv(file_path):
@@ -42,7 +41,11 @@ class StockQuotes:
 
     @property
     def csv_file_path(self):
-        return path.join(DATA_DIR, f'{self.ticker}_ohcl.csv')
+        if get_dwl_storage_status():
+            output = path.join(get_dwl_storage_dir(), f'{self.ticker}_ohcl.csv')
+        else:
+            output = None
+        return output
 
     def download_ohlc_from_stooq(self):
         url = f'http://stooq.com/q/d/l/?i=d&s={self.ticker}'
@@ -52,9 +55,6 @@ class StockQuotes:
         except ValueError:  # Stooq: Exceeded the daily hits limit
             output = None
         return output
-
-    def read_csv_file(self):
-        return read_ohlcv_from_csv(self.csv_file_path)
 
     def _get_data(self):
         update_required = True  # assuming that update will be required
@@ -69,16 +69,15 @@ class StockQuotes:
         # from Mo-Fr, assume that last update was one day earlier 
         delta_days = (weekday_now - 4) if is_weekend else 0
         expected_ohlc_time = time_now - timedelta(days=delta_days)
-        last_ohlc_time = expected_ohlc_time - timedelta(days=1)
 
         # file with data for ticker exists
-        if path.exists(self.csv_file_path):
+        if get_dwl_storage_status() and path.exists(self.csv_file_path):
             timestamp_now = datetime.timestamp(time_now)
             timestamp_up = path.getatime(self.csv_file_path)  # CSV file modification time
 
             # CSV updated within last 24 hours or it is weekend (no new data) 
             if (timestamp_now - timestamp_up < 24 * 3600) or is_weekend:
-                output = self.read_csv_file()
+                output = read_ohlcv_from_csv(self.csv_file_path)
                 last_ohlc_time = output.iloc[-1].name
 
                 if last_ohlc_time.date() == expected_ohlc_time.date() or (time_now.hour < 20 and not is_weekend):
@@ -89,9 +88,11 @@ class StockQuotes:
             new_output = self.download_ohlc_from_stooq()
 
             if not new_output.empty:
-                # Updated data downloaded - save to CSV and update output 
-                new_output.to_csv(self.csv_file_path)
+                # Updated data downloaded - update output
                 output = new_output
+                # save to CSV
+                if get_dwl_storage_status():
+                    new_output.to_csv(self.csv_file_path)
             else:
                 # Update error (Stooq: Exceeded the daily hits limit) 
                 pass
