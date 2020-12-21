@@ -1,6 +1,10 @@
 Release notes
 =============
 
+## next
+* adding Heikin-Ashi
+* adding switchable data storage
+
 ## v0.5.0
 * removing simulator - the package should focus on analysis tools only
 
