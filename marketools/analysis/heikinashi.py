@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 
 
 def heikinashi(ohlc: pd.DataFrame) -> pd.DataFrame:
@@ -19,8 +20,13 @@ def heikinashi(ohlc: pd.DataFrame) -> pd.DataFrame:
 
     output['Close'] = ohlc[['Open', 'High', 'Low', 'Close']].mean(axis=1)
 
-    output['Open'] = ohlc[['Open', 'Close']].mean(axis=1)
-    output['Open'] = output['Open'].shift(periods=1)
+    output.loc[ohlc.index[0], 'Open'] = ohlc.loc[ohlc.index[0], 'Open']
+    next_open = None
+    for idx, val in output.iterrows():
+        if next_open is not None:
+            val['Open'] = next_open
+            output.loc[idx, 'Open'] = next_open
+        next_open = (val['Open'] + val['Close']) / 2
 
     output['High'] = ohlc['High']
     output['High'] = output[['High', 'Open', 'Close']].max(axis=1)
@@ -28,6 +34,6 @@ def heikinashi(ohlc: pd.DataFrame) -> pd.DataFrame:
     output['Low'] = ohlc['Low']
     output['Low'] = output[['Low', 'Open', 'Close']].min(axis=1)
 
-    output = output.drop(output.index[0])
+    output = output.astype(np.float64)
 
     return output
