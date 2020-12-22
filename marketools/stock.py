@@ -2,8 +2,8 @@ from .stqscraper.fundamentals import Fundamentals
 from .stqscraper.stockquotes import StockQuotes
 from .stqscraper.scrapers import scrap_summary_table
 from .analysis import heikinashi
-from . import get_storage_dir, get_storage_status
-from datetime import datetime
+from .storage import get_storage_dir, get_storage_status
+from datetime import datetime, timedelta
 import pandas as pd
 import numpy as np
 import os
@@ -126,16 +126,24 @@ class Stock:
                                  parse_dates=['Date'],
                                  date_parser=lambda x: datetime.strptime(x, '%Y-%m-%d'))
             output = output.astype(np.float64)
-            # check is update needed - ohlc.index[-1] == output.index[-1]
-            # if update needed - update
+
+            # check is update needed
+            last_ohlc_date = self.ohlc.index[-1]
+            last_ha_date = output.index[-1]
+
+            if last_ohlc_date > last_ha_date:
+                first_open = (output.loc[last_ha_date, 'Open']
+                              + output.loc[last_ha_date, 'Close']) / 2
+                new_ha = heikinashi(self.ohlc[last_ha_date+timedelta(days=1):],
+                                    first_open=first_open)
+                output = pd.concat([output, new_ha])
+                output.to_csv(file_path)
         else:
             # calculate Heikin-Ashi
             output = heikinashi(self.ohlc)
 
             if use_storage:
-                # save to csv
-                pass
-            pass
+                output.to_csv(file_path)
 
         return output
 
