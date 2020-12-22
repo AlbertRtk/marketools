@@ -29,11 +29,6 @@ class Stock:
         self._ohlc = StockQuotes(ticker)
         self._fundamentals = Fundamentals(ticker)
 
-    # @property
-    # def name(self):
-    #     stocks = dict()
-    #     return stocks.get(self.ticker, None)
-
     @property
     def ohlc(self):
         """

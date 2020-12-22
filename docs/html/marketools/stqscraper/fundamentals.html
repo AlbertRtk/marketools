@@ -26,10 +26,8 @@
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">from . import DATA_DIR
+<pre><code class="python">from . import get_dwl_storage_status, get_dwl_storage_dir
 from datetime import datetime
-import pandas as pd
-import requests
 import os
 import csv
 from .scrapers import scrap_summary_table
@@ -50,9 +48,9 @@ class Fundamentals(dict):
         &#34;&#34;&#34;
 
         update_required = True  # assuming that update will be required
-        file_path = os.path.join(DATA_DIR, f&#39;{self.ticker}_indicators.csv&#39;)
+        file_path = os.path.join(get_dwl_storage_dir(), f&#39;{self.ticker}_indicators.csv&#39;)
 
-        if os.path.exists(file_path):
+        if get_dwl_storage_status() and os.path.exists(file_path):
             timestamp_now = datetime.timestamp(datetime.now())
             timestamp_up = os.path.getatime(file_path)  # CSV file modification time
 
@@ -73,10 +71,11 @@ class Fundamentals(dict):
         if update_required:
             # data older than 24 hours - update
             self.update(scrap_summary_table(self.ticker))
-            with open(file_path, &#39;w&#39;) as f:
-                writer = csv.DictWriter(f, self.keys())
-                writer.writeheader()
-                writer.writerow(self)
+            if get_dwl_storage_status():
+                with open(file_path, &#39;w&#39;) as f:
+                    writer = csv.DictWriter(f, self.keys())
+                    writer.writeheader()
+                    writer.writerow(self)
 
         if bool(self) is False:
             # no fundamental data (None or empty dict)
@@ -121,9 +120,9 @@ if __name__ == &#39;__main__&#39;:
         &#34;&#34;&#34;
 
         update_required = True  # assuming that update will be required
-        file_path = os.path.join(DATA_DIR, f&#39;{self.ticker}_indicators.csv&#39;)
+        file_path = os.path.join(get_dwl_storage_dir(), f&#39;{self.ticker}_indicators.csv&#39;)
 
-        if os.path.exists(file_path):
+        if get_dwl_storage_status() and os.path.exists(file_path):
             timestamp_now = datetime.timestamp(datetime.now())
             timestamp_up = os.path.getatime(file_path)  # CSV file modification time
 
@@ -144,10 +143,11 @@ if __name__ == &#39;__main__&#39;:
         if update_required:
             # data older than 24 hours - update
             self.update(scrap_summary_table(self.ticker))
-            with open(file_path, &#39;w&#39;) as f:
-                writer = csv.DictWriter(f, self.keys())
-                writer.writeheader()
-                writer.writerow(self)
+            if get_dwl_storage_status():
+                with open(file_path, &#39;w&#39;) as f:
+                    writer = csv.DictWriter(f, self.keys())
+                    writer.writeheader()
+                    writer.writerow(self)
 
         if bool(self) is False:
             # no fundamental data (None or empty dict)
@@ -174,9 +174,9 @@ if __name__ == &#39;__main__&#39;:
     &#34;&#34;&#34;
 
     update_required = True  # assuming that update will be required
-    file_path = os.path.join(DATA_DIR, f&#39;{self.ticker}_indicators.csv&#39;)
+    file_path = os.path.join(get_dwl_storage_dir(), f&#39;{self.ticker}_indicators.csv&#39;)
 
-    if os.path.exists(file_path):
+    if get_dwl_storage_status() and os.path.exists(file_path):
         timestamp_now = datetime.timestamp(datetime.now())
         timestamp_up = os.path.getatime(file_path)  # CSV file modification time
 
@@ -197,10 +197,11 @@ if __name__ == &#39;__main__&#39;:
     if update_required:
         # data older than 24 hours - update
         self.update(scrap_summary_table(self.ticker))
-        with open(file_path, &#39;w&#39;) as f:
-            writer = csv.DictWriter(f, self.keys())
-            writer.writeheader()
-            writer.writerow(self)
+        if get_dwl_storage_status():
+            with open(file_path, &#39;w&#39;) as f:
+                writer = csv.DictWriter(f, self.keys())
+                writer.writeheader()
+                writer.writerow(self)
 
     if bool(self) is False:
         # no fundamental data (None or empty dict)

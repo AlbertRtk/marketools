@@ -26,11 +26,14 @@
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">from .stqscraper import DATA_DIR
-from .stqscraper.fundamentals import Fundamentals
+<pre><code class="python">from .stqscraper.fundamentals import Fundamentals
 from .stqscraper.stockquotes import StockQuotes
 from .stqscraper.scrapers import scrap_summary_table
+from .analysis import heikinashi
+from .__storage import get_storage_dir, get_storage_status
+from datetime import datetime, timedelta
 import pandas as pd
+import numpy as np
 import os
 
 
@@ -53,11 +56,6 @@ class Stock:
         self.ticker = ticker
         self._ohlc = StockQuotes(ticker)
         self._fundamentals = Fundamentals(ticker)
-
-    # @property
-    # def name(self):
-    #     stocks = dict()
-    #     return stocks.get(self.ticker, None)
 
     @property
     def ohlc(self):
@@ -139,6 +137,39 @@ class Stock:
         output = volume.mean()
         return output
 
+    def heikinashi(self):
+        # read from file
+        file_path = os.path.join(get_storage_dir(), f&#39;{self.ticker}_heikinashi.csv&#39;)
+        use_storage = get_storage_status()
+
+        if use_storage and os.path.exists(file_path):
+            # read csv
+            output = pd.read_csv(file_path,
+                                 index_col=&#39;Date&#39;,
+                                 parse_dates=[&#39;Date&#39;],
+                                 date_parser=lambda x: datetime.strptime(x, &#39;%Y-%m-%d&#39;))
+            output = output.astype(np.float64)
+
+            # check is update needed
+            last_ohlc_date = self.ohlc.index[-1]
+            last_ha_date = output.index[-1]
+
+            if last_ohlc_date &gt; last_ha_date:
+                first_open = (output.loc[last_ha_date, &#39;Open&#39;]
+                              + output.loc[last_ha_date, &#39;Close&#39;]) / 2
+                new_ha = heikinashi(self.ohlc[last_ha_date+timedelta(days=1):],
+                                    first_open=first_open)
+                output = pd.concat([output, new_ha])
+                output.to_csv(file_path)
+        else:
+            # calculate Heikin-Ashi
+            output = heikinashi(self.ohlc)
+
+            if use_storage:
+                output.to_csv(file_path)
+
+        return output
+
 
 if __name__ == &#39;__main__&#39;:
     pass</code></pre>
@@ -192,11 +223,6 @@ Polish stocks, e.g, 'AAPL.US'</dd>
         self.ticker = ticker
         self._ohlc = StockQuotes(ticker)
         self._fundamentals = Fundamentals(ticker)
-
-    # @property
-    # def name(self):
-    #     stocks = dict()
-    #     return stocks.get(self.ticker, None)
 
     @property
     def ohlc(self):
@@ -276,6 +302,39 @@ Polish stocks, e.g, 'AAPL.US'</dd>
         &#34;&#34;&#34;
         volume = self.ohlc.tail(window)[&#39;Volume&#39;]
         output = volume.mean()
+        return output
+
+    def heikinashi(self):
+        # read from file
+        file_path = os.path.join(get_storage_dir(), f&#39;{self.ticker}_heikinashi.csv&#39;)
+        use_storage = get_storage_status()
+
+        if use_storage and os.path.exists(file_path):
+            # read csv
+            output = pd.read_csv(file_path,
+                                 index_col=&#39;Date&#39;,
+                                 parse_dates=[&#39;Date&#39;],
+                                 date_parser=lambda x: datetime.strptime(x, &#39;%Y-%m-%d&#39;))
+            output = output.astype(np.float64)
+
+            # check is update needed
+            last_ohlc_date = self.ohlc.index[-1]
+            last_ha_date = output.index[-1]
+
+            if last_ohlc_date &gt; last_ha_date:
+                first_open = (output.loc[last_ha_date, &#39;Open&#39;]
+                              + output.loc[last_ha_date, &#39;Close&#39;]) / 2
+                new_ha = heikinashi(self.ohlc[last_ha_date+timedelta(days=1):],
+                                    first_open=first_open)
+                output = pd.concat([output, new_ha])
+                output.to_csv(file_path)
+        else:
+            # calculate Heikin-Ashi
+            output = heikinashi(self.ohlc)
+
+            if use_storage:
+                output.to_csv(file_path)
+
         return output</code></pre>
 </details>
 <h3>Instance variables</h3>
@@ -433,6 +492,49 @@ def volume(self):
 </dl>
 <h3>Methods</h3>
 <dl>
+<dt id="marketools.stock.Stock.heikinashi"><code class="name flex">
+<span>def <span class="ident">heikinashi</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def heikinashi(self):
+    # read from file
+    file_path = os.path.join(get_storage_dir(), f&#39;{self.ticker}_heikinashi.csv&#39;)
+    use_storage = get_storage_status()
+
+    if use_storage and os.path.exists(file_path):
+        # read csv
+        output = pd.read_csv(file_path,
+                             index_col=&#39;Date&#39;,
+                             parse_dates=[&#39;Date&#39;],
+                             date_parser=lambda x: datetime.strptime(x, &#39;%Y-%m-%d&#39;))
+        output = output.astype(np.float64)
+
+        # check is update needed
+        last_ohlc_date = self.ohlc.index[-1]
+        last_ha_date = output.index[-1]
+
+        if last_ohlc_date &gt; last_ha_date:
+            first_open = (output.loc[last_ha_date, &#39;Open&#39;]
+                          + output.loc[last_ha_date, &#39;Close&#39;]) / 2
+            new_ha = heikinashi(self.ohlc[last_ha_date+timedelta(days=1):],
+                                first_open=first_open)
+            output = pd.concat([output, new_ha])
+            output.to_csv(file_path)
+    else:
+        # calculate Heikin-Ashi
+        output = heikinashi(self.ohlc)
+
+        if use_storage:
+            output.to_csv(file_path)
+
+    return output</code></pre>
+</details>
+</dd>
 <dt id="marketools.stock.Stock.mean_volume"><code class="name flex">
 <span>def <span class="ident">mean_volume</span></span>(<span>self, window: int)</span>
 </code></dt>
@@ -496,6 +598,7 @@ calculated over</dd>
 <li><code><a title="marketools.stock.Stock.dividend_yield" href="#marketools.stock.Stock.dividend_yield">dividend_yield</a></code></li>
 <li><code><a title="marketools.stock.Stock.eps" href="#marketools.stock.Stock.eps">eps</a></code></li>
 <li><code><a title="marketools.stock.Stock.fundamentals" href="#marketools.stock.Stock.fundamentals">fundamentals</a></code></li>
+<li><code><a title="marketools.stock.Stock.heikinashi" href="#marketools.stock.Stock.heikinashi">heikinashi</a></code></li>
 <li><code><a title="marketools.stock.Stock.last" href="#marketools.stock.Stock.last">last</a></code></li>
 <li><code><a title="marketools.stock.Stock.last_ohlc" href="#marketools.stock.Stock.last_ohlc">last_ohlc</a></code></li>
 <li><code><a title="marketools.stock.Stock.mean_volume" href="#marketools.stock.Stock.mean_volume">mean_volume</a></code></li>

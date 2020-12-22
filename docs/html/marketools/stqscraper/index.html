@@ -29,11 +29,23 @@
 <pre><code class="python">import os
 
 
-# DATA_DIR = os.path.join(os.path.expanduser(&#39;~&#39;), &#39;.stock_market_data&#39;)
-DATA_DIR = os.path.join(os.getcwd(), &#39;.stock_market_data&#39;)
+STORE_DWL_DATA = False
+DWL_DATA_DIR = os.path.join(os.getcwd(), &#39;.marketools_data&#39;)
 
-if not os.path.exists(DATA_DIR):
-    os.mkdir(DATA_DIR)</code></pre>
+
+def store_scraped_data():
+    global STORE_DWL_DATA
+    STORE_DWL_DATA = True
+    if not os.path.exists(DWL_DATA_DIR):
+        os.mkdir(DWL_DATA_DIR)
+
+
+def get_dwl_storage_status():
+    return STORE_DWL_DATA
+
+
+def get_dwl_storage_dir():
+    return DWL_DATA_DIR</code></pre>
 </details>
 </section>
 <section>
@@ -56,6 +68,51 @@ if not os.path.exists(DATA_DIR):
 <section>
 </section>
 <section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="marketools.stqscraper.get_dwl_storage_dir"><code class="name flex">
+<span>def <span class="ident">get_dwl_storage_dir</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_dwl_storage_dir():
+    return DWL_DATA_DIR</code></pre>
+</details>
+</dd>
+<dt id="marketools.stqscraper.get_dwl_storage_status"><code class="name flex">
+<span>def <span class="ident">get_dwl_storage_status</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_dwl_storage_status():
+    return STORE_DWL_DATA</code></pre>
+</details>
+</dd>
+<dt id="marketools.stqscraper.store_scraped_data"><code class="name flex">
+<span>def <span class="ident">store_scraped_data</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def store_scraped_data():
+    global STORE_DWL_DATA
+    STORE_DWL_DATA = True
+    if not os.path.exists(DWL_DATA_DIR):
+        os.mkdir(DWL_DATA_DIR)</code></pre>
+</details>
+</dd>
+</dl>
 </section>
 <section>
 </section>
@@ -76,6 +133,13 @@ if not os.path.exists(DATA_DIR):
 <li><code><a title="marketools.stqscraper.fundamentals" href="fundamentals.html">marketools.stqscraper.fundamentals</a></code></li>
 <li><code><a title="marketools.stqscraper.scrapers" href="scrapers.html">marketools.stqscraper.scrapers</a></code></li>
 <li><code><a title="marketools.stqscraper.stockquotes" href="stockquotes.html">marketools.stqscraper.stockquotes</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="marketools.stqscraper.get_dwl_storage_dir" href="#marketools.stqscraper.get_dwl_storage_dir">get_dwl_storage_dir</a></code></li>
+<li><code><a title="marketools.stqscraper.get_dwl_storage_status" href="#marketools.stqscraper.get_dwl_storage_status">get_dwl_storage_status</a></code></li>
+<li><code><a title="marketools.stqscraper.store_scraped_data" href="#marketools.stqscraper.store_scraped_data">store_scraped_data</a></code></li>
 </ul>
 </li>
 </ul>

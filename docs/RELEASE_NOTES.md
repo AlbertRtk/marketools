@@ -1,9 +1,10 @@
 Release notes
 =============
 
-## next
+## v0.6.0
 * adding Heikin-Ashi
 * adding switchable data storage
+* adding methode heikinashi to Stock
 
 ## v0.5.0
 * removing simulator - the package should focus on analysis tools only
