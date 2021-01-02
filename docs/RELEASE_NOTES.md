@@ -1,6 +1,9 @@
 Release notes
 =============
 
+### v0.6.2
+* user can set if, what time, and how often OHLC data are updated in Stock
+
 ### v0.6.1
 * user can set if, what time, and how often OHLC data are updated in StockQuotes
 
