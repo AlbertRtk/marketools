@@ -1,12 +1,15 @@
 Release notes
 =============
 
-## v0.6.0
+### v0.6.1
+* user can set if, what time, and how often OHLC data are updated in StockQuotes
+
+### v0.6.0
 * adding Heikin-Ashi
 * adding switchable data storage
 * adding methode heikinashi to Stock
 
-## v0.5.0
+### v0.5.0
 * removing simulator - the package should focus on analysis tools only
 
 ### v0.4.0
