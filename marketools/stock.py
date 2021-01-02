@@ -24,10 +24,6 @@ class Stock:
         dictionary with available fundamental information
     """
 
-    check_for_update = True  # if True OHLC data will be checked for updates
-    update_period = 24  # time in hours, how often data are checked for updates
-    update_hour = 20  # full hour after that the data are checked for update
-
     def __init__(self, ticker: str):
         self.ticker = ticker
         self._ohlc = StockQuotes(ticker)
@@ -38,9 +34,6 @@ class Stock:
         """
         Returns DataFrame with OHLC prices (open-high-low-close), and volume.
         """
-        StockQuotes.check_for_update = self.check_for_update
-        StockQuotes.update_period = self.update_period
-        StockQuotes.update_hour = self.update_hour
         return self._ohlc.data
 
     @property

@@ -1,6 +1,9 @@
 Release notes
 =============
 
+### v0.6.3
+* removing changes from v0.6.2
+
 ### v0.6.2
 * user can set if, what time, and how often OHLC data are updated in Stock
 
