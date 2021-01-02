@@ -24,8 +24,6 @@ class Stock:
         dictionary with available fundamental information
     """
 
-    check_for_update = True
-
     def __init__(self, ticker: str):
         self.ticker = ticker
         self._ohlc = StockQuotes(ticker)
@@ -36,7 +34,6 @@ class Stock:
         """
         Returns DataFrame with OHLC prices (open-high-low-close), and volume.
         """
-        StockQuotes.check_for_update = Stock.check_for_update
         return self._ohlc.data
 
     @property

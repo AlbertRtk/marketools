@@ -29,7 +29,9 @@ def read_ohlcv_from_csv(file_path):
 
 class StockQuotes:
 
-    check_for_update = True
+    check_for_update = True  # if True OHLC data will be checked for updates
+    update_period = 24  # time in hours, how often data are checked for updates
+    update_hour = 20  # full hour after that the data are checked for update
 
     def __init__(self, ticker):
         self.ticker = ticker
@@ -78,11 +80,13 @@ class StockQuotes:
             timestamp_up = path.getatime(self.csv_file_path)  # CSV file modification time
 
             # CSV updated within last 24 hours or it is weekend (no new data) 
-            if (timestamp_now - timestamp_up < 24 * 3600) or is_weekend:
+            if (timestamp_now - timestamp_up < StockQuotes.update_period * 3600) or is_weekend:
                 output = read_ohlcv_from_csv(self.csv_file_path)
                 last_ohlc_time = output.iloc[-1].name
 
-                if last_ohlc_time.date() == expected_ohlc_time.date() or (time_now.hour < 20 and not is_weekend):
+                updated_data = last_ohlc_time.date() == expected_ohlc_time.date()
+                session_time = time_now.hour < StockQuotes.update_hour and not is_weekend
+                if updated_data or session_time:
                     update_required = False
 
         if update_required:
