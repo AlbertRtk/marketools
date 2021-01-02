@@ -29,9 +29,9 @@ def read_ohlcv_from_csv(file_path):
 
 class StockQuotes:
     def __init__(self, ticker):
-        super().__init__()
         self.ticker = ticker
         self._historical_ohlc = None
+        self.check_for_update = True
 
     @property
     def data(self):
@@ -57,7 +57,7 @@ class StockQuotes:
         return output
 
     def _get_data(self):
-        update_required = True  # assuming that update will be required
+        update_required = self.check_for_update  # assuming that update will be required
         output = pd.DataFrame()
 
         # time info 
