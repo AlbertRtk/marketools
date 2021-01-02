@@ -18,11 +18,13 @@ class Stock:
     ticker : str
         ticker of a stock; country code needs to be append after a dot for not
         Polish stocks, e.g, 'AAPL.US'
-    ohlc : pandas.DataFrame
+    _ohlc : pandas.DataFrame
         DataFrame with OHLC prices (open-high-low-close), and volume
-    fundamentals : dict
+    _fundamentals : dict
         dictionary with available fundamental information
     """
+
+    check_for_update = True
 
     def __init__(self, ticker: str):
         self.ticker = ticker
@@ -34,6 +36,7 @@ class Stock:
         """
         Returns DataFrame with OHLC prices (open-high-low-close), and volume.
         """
+        StockQuotes.check_for_update = Stock.check_for_update
         return self._ohlc.data
 
     @property

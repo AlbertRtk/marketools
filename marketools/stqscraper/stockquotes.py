@@ -28,10 +28,12 @@ def read_ohlcv_from_csv(file_path):
 
 
 class StockQuotes:
+
+    check_for_update = True
+
     def __init__(self, ticker):
         self.ticker = ticker
         self._historical_ohlc = None
-        self.check_for_update = True
 
     @property
     def data(self):
