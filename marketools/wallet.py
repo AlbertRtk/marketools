@@ -27,10 +27,6 @@ class Wallet(Commission):
         self.stocks = pd.DataFrame(columns=['Name', 'Volume', 'Purchase price', 'Price'])
 
     @property
-    def money(self) -> float:
-        return self.__money
-
-    @property
     def stocks(self) -> pd.DataFrame:
         return self.__stocks
 
@@ -42,10 +38,6 @@ class Wallet(Commission):
     @property
     def total_value(self):
         return self.stocks_value + self.money
-
-    @money.setter
-    def money(self, pay_in: float):
-        self.__money = pay_in
 
     @stocks.setter
     def stocks(self, new_stocks: pd.DataFrame):
