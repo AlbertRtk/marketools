@@ -18,14 +18,18 @@ class Stock:
     ticker : str
         ticker of a stock; country code needs to be append after a dot for not
         Polish stocks, e.g, 'AAPL.US'
+    interval : str
+        single letter defining the interval for OHLC data:
+        d - day (default), w - weekly, m - monthly, q - quarterly, y - yearly
     _ohlc : pandas.DataFrame
         DataFrame with OHLC prices (open-high-low-close), and volume
     _fundamentals : dict
         dictionary with available fundamental information
     """
 
-    def __init__(self, ticker: str):
+    def __init__(self, ticker: str, interval: str = 'd'):
         self.ticker = ticker
+        self.interval = interval
         self._ohlc = StockQuotes(ticker)
         self._fundamentals = Fundamentals(ticker)
 
@@ -34,7 +38,7 @@ class Stock:
         """
         Returns DataFrame with OHLC prices (open-high-low-close), and volume.
         """
-        return self._ohlc.ohlc_d
+        return self._ohlc.ohlc(interval=self.interval)
 
     @property
     def last_ohlc(self):
@@ -109,9 +113,11 @@ class Stock:
         output = volume.mean()
         return output
 
+    @property
     def heikinashi(self):
         # read from file
-        file_path = os.path.join(get_storage_dir(), f'{self.ticker}_heikinashi.csv')
+        file_path = os.path.join(get_storage_dir(),
+                                 f'{self.ticker}_heikinashi_{self.interval}.csv')
         use_storage = get_storage_status()
 
         if use_storage and os.path.exists(file_path):
