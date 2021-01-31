@@ -34,7 +34,7 @@ class Stock:
         """
         Returns DataFrame with OHLC prices (open-high-low-close), and volume.
         """
-        return self._ohlc.data
+        return self._ohlc.ohlc_d
 
     @property
     def last_ohlc(self):

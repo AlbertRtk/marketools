@@ -4,6 +4,7 @@ import numpy as np
 from os import path
 from urllib.request import urlretrieve
 from datetime import datetime, timedelta
+import warnings
 
 
 def read_ohlcv_from_csv(file_path):
@@ -35,24 +36,66 @@ class StockQuotes:
 
     def __init__(self, ticker):
         self.ticker = ticker
-        self._historical_ohlc = None
+        self._historical_ohlc = dict(d=None, w=None, m=None, q=None, y=None)
 
     @property
     def data(self):
-        if self._historical_ohlc is None:
-            self._historical_ohlc = self._get_data()
-        return self._historical_ohlc
+        warnings.warn('data is depracted, use ohlc_d instead',
+                      DeprecationWarning)
+        if self._historical_ohlc['d'] is None:
+            self._historical_ohlc['d'] = self._get_data(interval='d')
+        return self._historical_ohlc['d']
+
+    def ohlc(self, interval='d'):
+        if self._historical_ohlc[interval] is None:
+            self._historical_ohlc[interval] = self._get_data(interval=interval)
+        return self._historical_ohlc[interval]
 
     @property
-    def csv_file_path(self):
+    def ohlc_d(self):
+        return self.ohlc(interval='d')
+
+    @property
+    def ohlc_w(self):
+        return self.ohlc(interval='w')
+
+    @property
+    def ohlc_m(self):
+        return self.ohlc(interval='m')
+
+    @property
+    def ohlc_q(self):
+        return self.ohlc(interval='q')
+
+    @property
+    def ohlc_y(self):
+        return self.ohlc(interval='y')
+
+    def csv_file_path(self, interval='d'):
         if get_dwl_storage_status():
-            output = path.join(get_dwl_storage_dir(), f'{self.ticker}_ohcl.csv')
+            output = path.join(get_dwl_storage_dir(),
+                               f'{self.ticker}_ohcl_{interval}.csv')
         else:
             output = None
         return output
 
-    def download_ohlc_from_stooq(self):
-        url = f'http://stooq.com/q/d/l/?i=d&s={self.ticker}'
+    def download_ohlc_from_stooq(self, interval='d'):
+        """
+        Download CSV file with OHLC data from Stooq.com and reads the data into
+        DataFrame. Returns None if daily hits limit for Stooq is exceeded.
+
+        Parameters
+        ----------
+        interval : str
+            single letter defining the interval for OHLC data:
+            d - day (default), w - weekly, m - monthly, q - quarterly,
+            y - yearly
+
+        Returns
+        -------
+        pandas.DataFrame
+        """
+        url = f'http://stooq.com/q/d/l/?i={interval}&s={self.ticker}'
         file_path, _ = urlretrieve(url)
         try:
             output = read_ohlcv_from_csv(file_path)
@@ -60,7 +103,7 @@ class StockQuotes:
             output = None
         return output
 
-    def _get_data(self):
+    def _get_data(self, interval='d'):
         update_required = self.check_for_update  # assuming that update will be required
         output = pd.DataFrame()
 
@@ -75,13 +118,13 @@ class StockQuotes:
         expected_ohlc_time = time_now - timedelta(days=delta_days)
 
         # file with data for ticker exists
-        if get_dwl_storage_status() and path.exists(self.csv_file_path):
+        if get_dwl_storage_status() and path.exists(self.csv_file_path(interval=interval)):
             timestamp_now = datetime.timestamp(time_now)
-            timestamp_up = path.getatime(self.csv_file_path)  # CSV file modification time
+            timestamp_up = path.getatime(self.csv_file_path(interval=interval))  # CSV file modification time
 
             # CSV updated within last 24 hours or it is weekend (no new data) 
             if (timestamp_now - timestamp_up < StockQuotes.update_period * 3600) or is_weekend:
-                output = read_ohlcv_from_csv(self.csv_file_path)
+                output = read_ohlcv_from_csv(self.csv_file_path(interval=interval))
                 last_ohlc_time = output.iloc[-1].name
 
                 updated_data = last_ohlc_time.date() == expected_ohlc_time.date()
@@ -91,14 +134,14 @@ class StockQuotes:
 
         if update_required:
             # update CSV file and read data 
-            new_output = self.download_ohlc_from_stooq()
+            new_output = self.download_ohlc_from_stooq(interval=interval)
 
             if not new_output.empty:
                 # Updated data downloaded - update output
                 output = new_output
                 # save to CSV
                 if get_dwl_storage_status():
-                    new_output.to_csv(self.csv_file_path)
+                    new_output.to_csv(self.csv_file_path(interval=interval))
             else:
                 # Update error (Stooq: Exceeded the daily hits limit) 
                 pass
