@@ -22,6 +22,22 @@ class Commission:
 
 
 class Wallet(Commission):
+    """
+    Class representing na investor wallet (broker account).
+
+    Attributes
+    ----------
+    money : float
+        value of money in the wallet
+    stocks : pandas.DataFrame
+        DataFrame with owned stocks information:
+        'Name' - name/ticker of stock,
+        'Volume' - count of given shares in wallet
+        'Purchase price' - purchase price
+        'Purchase date' - date of first purchase (position opening date)
+        'Price' - latest stock price
+    """
+
     def __init__(self, commission_rate: float, min_commission):
         super().__init__(commission_rate, min_commission)
         self.money = 0
@@ -140,7 +156,10 @@ class Wallet(Commission):
         else:
             return None
 
-    def get_purchase_date_of_stocks(self, name: str):
+    def get_position_opening_date_for_stock(self, name: str):
+        """
+        Returns date of position opening for given stock (first purchase date).
+        """
         idx = self.__get_stocks_index(name)
         if idx is not None:
             return self.stocks.loc[idx, 'Purchase date']

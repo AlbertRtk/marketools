@@ -3,7 +3,7 @@ from .stqscraper import store_scraped_data
 
 
 STORE_DATA = False
-DATA_DIR = os.path.join(os.getcwd(), '.marketools_data')
+DATA_DIR = os.path.join(os.path.expanduser('~'), '.marketools_data')
 
 
 def __create_data_storage_dir():

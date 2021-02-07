@@ -1,6 +1,12 @@
 Release notes
 =============
 
+### v...
+* user can choose whether stock data are stored or not 
+* user can choose whether stock data are checked for update or not
+* Wallet stores first purchase date 
+* configurable OHLC price interval in Stock class
+
 ### v0.6.3
 * removing changes from v0.6.2
 
