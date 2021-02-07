@@ -1,4 +1,5 @@
 import pandas as pd
+from datetime import date
 
 
 class Commission:
@@ -24,7 +25,7 @@ class Wallet(Commission):
     def __init__(self, commission_rate: float, min_commission):
         super().__init__(commission_rate, min_commission)
         self.money = 0
-        self.stocks = pd.DataFrame(columns=['Name', 'Volume', 'Purchase price', 'Price'])
+        self.stocks = pd.DataFrame(columns=['Name', 'Volume', 'Purchase price', 'Purchase date', 'Price'])
 
     @property
     def stocks(self) -> pd.DataFrame:
@@ -139,10 +140,18 @@ class Wallet(Commission):
         else:
             return None
 
-    def buy(self, name: str, volume: int, price: float) -> None:
+    def get_purchase_date_of_stocks(self, name: str):
+        idx = self.__get_stocks_index(name)
+        if idx is not None:
+            return self.stocks.loc[idx, 'Purchase date']
+        else:
+            return None
+
+    def buy(self, name: str, volume: int, price: float, purchase_date: date = date.today()) -> None:
         stock = pd.DataFrame({'Name': [name],
                               'Volume': [volume],
                               'Purchase price': [price],
+                              'Purchase date': [date],
                               'Price': [price]})
         self.__add__(stock)
 
