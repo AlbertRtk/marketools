@@ -1,7 +1,7 @@
 Release notes
 =============
 
-### v...
+### v1.0.0
 * user can choose whether stock data are stored or not 
 * user can choose whether stock data are checked for update or not
 * Wallet stores first purchase date 
