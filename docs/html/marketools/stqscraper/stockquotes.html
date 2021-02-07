@@ -32,6 +32,7 @@ import numpy as np
 from os import path
 from urllib.request import urlretrieve
 from datetime import datetime, timedelta
+import warnings
 
 
 def read_ohlcv_from_csv(file_path):
@@ -56,27 +57,73 @@ def read_ohlcv_from_csv(file_path):
 
 
 class StockQuotes:
+
+    check_for_update = True  # if True OHLC data will be checked for updates
+    update_period = 24  # time in hours, how often data are checked for updates
+    update_hour = 20  # full hour after that the data are checked for update
+
     def __init__(self, ticker):
-        super().__init__()
         self.ticker = ticker
-        self._historical_ohlc = None
+        self._historical_ohlc = dict(d=None, w=None, m=None, q=None, y=None)
 
     @property
     def data(self):
-        if self._historical_ohlc is None:
-            self._historical_ohlc = self._get_data()
-        return self._historical_ohlc
+        warnings.warn(&#39;data is depracted, use ohlc_d instead&#39;,
+                      DeprecationWarning)
+        if self._historical_ohlc[&#39;d&#39;] is None:
+            self._historical_ohlc[&#39;d&#39;] = self._get_data(interval=&#39;d&#39;)
+        return self._historical_ohlc[&#39;d&#39;]
+
+    def ohlc(self, interval=&#39;d&#39;):
+        if self._historical_ohlc[interval] is None:
+            self._historical_ohlc[interval] = self._get_data(interval=interval)
+        return self._historical_ohlc[interval]
 
     @property
-    def csv_file_path(self):
+    def ohlc_d(self):
+        return self.ohlc(interval=&#39;d&#39;)
+
+    @property
+    def ohlc_w(self):
+        return self.ohlc(interval=&#39;w&#39;)
+
+    @property
+    def ohlc_m(self):
+        return self.ohlc(interval=&#39;m&#39;)
+
+    @property
+    def ohlc_q(self):
+        return self.ohlc(interval=&#39;q&#39;)
+
+    @property
+    def ohlc_y(self):
+        return self.ohlc(interval=&#39;y&#39;)
+
+    def csv_file_path(self, interval=&#39;d&#39;):
         if get_dwl_storage_status():
-            output = path.join(get_dwl_storage_dir(), f&#39;{self.ticker}_ohcl.csv&#39;)
+            output = path.join(get_dwl_storage_dir(),
+                               f&#39;{self.ticker}_ohcl_{interval}.csv&#39;)
         else:
             output = None
         return output
 
-    def download_ohlc_from_stooq(self):
-        url = f&#39;http://stooq.com/q/d/l/?i=d&amp;s={self.ticker}&#39;
+    def download_ohlc_from_stooq(self, interval=&#39;d&#39;):
+        &#34;&#34;&#34;
+        Download CSV file with OHLC data from Stooq.com and reads the data into
+        DataFrame. Returns None if daily hits limit for Stooq is exceeded.
+
+        Parameters
+        ----------
+        interval : str
+            single letter defining the interval for OHLC data:
+            d - day (default), w - weekly, m - monthly, q - quarterly,
+            y - yearly
+
+        Returns
+        -------
+        pandas.DataFrame
+        &#34;&#34;&#34;
+        url = f&#39;http://stooq.com/q/d/l/?i={interval}&amp;s={self.ticker}&#39;
         file_path, _ = urlretrieve(url)
         try:
             output = read_ohlcv_from_csv(file_path)
@@ -84,8 +131,8 @@ class StockQuotes:
             output = None
         return output
 
-    def _get_data(self):
-        update_required = True  # assuming that update will be required
+    def _get_data(self, interval=&#39;d&#39;):
+        update_required = self.check_for_update  # assuming that update will be required
         output = pd.DataFrame()
 
         # time info 
@@ -99,28 +146,30 @@ class StockQuotes:
         expected_ohlc_time = time_now - timedelta(days=delta_days)
 
         # file with data for ticker exists
-        if get_dwl_storage_status() and path.exists(self.csv_file_path):
+        if get_dwl_storage_status() and path.exists(self.csv_file_path(interval=interval)):
             timestamp_now = datetime.timestamp(time_now)
-            timestamp_up = path.getatime(self.csv_file_path)  # CSV file modification time
+            timestamp_up = path.getatime(self.csv_file_path(interval=interval))  # CSV file modification time
 
             # CSV updated within last 24 hours or it is weekend (no new data) 
-            if (timestamp_now - timestamp_up &lt; 24 * 3600) or is_weekend:
-                output = read_ohlcv_from_csv(self.csv_file_path)
+            if (timestamp_now - timestamp_up &lt; StockQuotes.update_period * 3600) or is_weekend:
+                output = read_ohlcv_from_csv(self.csv_file_path(interval=interval))
                 last_ohlc_time = output.iloc[-1].name
 
-                if last_ohlc_time.date() == expected_ohlc_time.date() or (time_now.hour &lt; 20 and not is_weekend):
+                updated_data = last_ohlc_time.date() == expected_ohlc_time.date()
+                session_time = time_now.hour &lt; StockQuotes.update_hour and not is_weekend
+                if updated_data or session_time:
                     update_required = False
 
         if update_required:
             # update CSV file and read data 
-            new_output = self.download_ohlc_from_stooq()
+            new_output = self.download_ohlc_from_stooq(interval=interval)
 
             if not new_output.empty:
                 # Updated data downloaded - update output
                 output = new_output
                 # save to CSV
                 if get_dwl_storage_status():
-                    new_output.to_csv(self.csv_file_path)
+                    new_output.to_csv(self.csv_file_path(interval=interval))
             else:
                 # Update error (Stooq: Exceeded the daily hits limit) 
                 pass
@@ -198,27 +247,73 @@ if __name__ == &#39;__main__&#39;:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class StockQuotes:
+
+    check_for_update = True  # if True OHLC data will be checked for updates
+    update_period = 24  # time in hours, how often data are checked for updates
+    update_hour = 20  # full hour after that the data are checked for update
+
     def __init__(self, ticker):
-        super().__init__()
         self.ticker = ticker
-        self._historical_ohlc = None
+        self._historical_ohlc = dict(d=None, w=None, m=None, q=None, y=None)
 
     @property
     def data(self):
-        if self._historical_ohlc is None:
-            self._historical_ohlc = self._get_data()
-        return self._historical_ohlc
+        warnings.warn(&#39;data is depracted, use ohlc_d instead&#39;,
+                      DeprecationWarning)
+        if self._historical_ohlc[&#39;d&#39;] is None:
+            self._historical_ohlc[&#39;d&#39;] = self._get_data(interval=&#39;d&#39;)
+        return self._historical_ohlc[&#39;d&#39;]
+
+    def ohlc(self, interval=&#39;d&#39;):
+        if self._historical_ohlc[interval] is None:
+            self._historical_ohlc[interval] = self._get_data(interval=interval)
+        return self._historical_ohlc[interval]
 
     @property
-    def csv_file_path(self):
+    def ohlc_d(self):
+        return self.ohlc(interval=&#39;d&#39;)
+
+    @property
+    def ohlc_w(self):
+        return self.ohlc(interval=&#39;w&#39;)
+
+    @property
+    def ohlc_m(self):
+        return self.ohlc(interval=&#39;m&#39;)
+
+    @property
+    def ohlc_q(self):
+        return self.ohlc(interval=&#39;q&#39;)
+
+    @property
+    def ohlc_y(self):
+        return self.ohlc(interval=&#39;y&#39;)
+
+    def csv_file_path(self, interval=&#39;d&#39;):
         if get_dwl_storage_status():
-            output = path.join(get_dwl_storage_dir(), f&#39;{self.ticker}_ohcl.csv&#39;)
+            output = path.join(get_dwl_storage_dir(),
+                               f&#39;{self.ticker}_ohcl_{interval}.csv&#39;)
         else:
             output = None
         return output
 
-    def download_ohlc_from_stooq(self):
-        url = f&#39;http://stooq.com/q/d/l/?i=d&amp;s={self.ticker}&#39;
+    def download_ohlc_from_stooq(self, interval=&#39;d&#39;):
+        &#34;&#34;&#34;
+        Download CSV file with OHLC data from Stooq.com and reads the data into
+        DataFrame. Returns None if daily hits limit for Stooq is exceeded.
+
+        Parameters
+        ----------
+        interval : str
+            single letter defining the interval for OHLC data:
+            d - day (default), w - weekly, m - monthly, q - quarterly,
+            y - yearly
+
+        Returns
+        -------
+        pandas.DataFrame
+        &#34;&#34;&#34;
+        url = f&#39;http://stooq.com/q/d/l/?i={interval}&amp;s={self.ticker}&#39;
         file_path, _ = urlretrieve(url)
         try:
             output = read_ohlcv_from_csv(file_path)
@@ -226,8 +321,8 @@ if __name__ == &#39;__main__&#39;:
             output = None
         return output
 
-    def _get_data(self):
-        update_required = True  # assuming that update will be required
+    def _get_data(self, interval=&#39;d&#39;):
+        update_required = self.check_for_update  # assuming that update will be required
         output = pd.DataFrame()
 
         # time info 
@@ -241,28 +336,30 @@ if __name__ == &#39;__main__&#39;:
         expected_ohlc_time = time_now - timedelta(days=delta_days)
 
         # file with data for ticker exists
-        if get_dwl_storage_status() and path.exists(self.csv_file_path):
+        if get_dwl_storage_status() and path.exists(self.csv_file_path(interval=interval)):
             timestamp_now = datetime.timestamp(time_now)
-            timestamp_up = path.getatime(self.csv_file_path)  # CSV file modification time
+            timestamp_up = path.getatime(self.csv_file_path(interval=interval))  # CSV file modification time
 
             # CSV updated within last 24 hours or it is weekend (no new data) 
-            if (timestamp_now - timestamp_up &lt; 24 * 3600) or is_weekend:
-                output = read_ohlcv_from_csv(self.csv_file_path)
+            if (timestamp_now - timestamp_up &lt; StockQuotes.update_period * 3600) or is_weekend:
+                output = read_ohlcv_from_csv(self.csv_file_path(interval=interval))
                 last_ohlc_time = output.iloc[-1].name
 
-                if last_ohlc_time.date() == expected_ohlc_time.date() or (time_now.hour &lt; 20 and not is_weekend):
+                updated_data = last_ohlc_time.date() == expected_ohlc_time.date()
+                session_time = time_now.hour &lt; StockQuotes.update_hour and not is_weekend
+                if updated_data or session_time:
                     update_required = False
 
         if update_required:
             # update CSV file and read data 
-            new_output = self.download_ohlc_from_stooq()
+            new_output = self.download_ohlc_from_stooq(interval=interval)
 
             if not new_output.empty:
                 # Updated data downloaded - update output
                 output = new_output
                 # save to CSV
                 if get_dwl_storage_status():
-                    new_output.to_csv(self.csv_file_path)
+                    new_output.to_csv(self.csv_file_path(interval=interval))
             else:
                 # Update error (Stooq: Exceeded the daily hits limit) 
                 pass
@@ -272,24 +369,23 @@ if __name__ == &#39;__main__&#39;:
         
         return output</code></pre>
 </details>
-<h3>Instance variables</h3>
+<h3>Class variables</h3>
 <dl>
-<dt id="marketools.stqscraper.stockquotes.StockQuotes.csv_file_path"><code class="name">var <span class="ident">csv_file_path</span></code></dt>
+<dt id="marketools.stqscraper.stockquotes.StockQuotes.check_for_update"><code class="name">var <span class="ident">check_for_update</span></code></dt>
 <dd>
 <div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@property
-def csv_file_path(self):
-    if get_dwl_storage_status():
-        output = path.join(get_dwl_storage_dir(), f&#39;{self.ticker}_ohcl.csv&#39;)
-    else:
-        output = None
-    return output</code></pre>
-</details>
 </dd>
+<dt id="marketools.stqscraper.stockquotes.StockQuotes.update_hour"><code class="name">var <span class="ident">update_hour</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="marketools.stqscraper.stockquotes.StockQuotes.update_period"><code class="name">var <span class="ident">update_period</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
 <dt id="marketools.stqscraper.stockquotes.StockQuotes.data"><code class="name">var <span class="ident">data</span></code></dt>
 <dd>
 <div class="desc"></div>
@@ -299,16 +395,78 @@ def csv_file_path(self):
 </summary>
 <pre><code class="python">@property
 def data(self):
-    if self._historical_ohlc is None:
-        self._historical_ohlc = self._get_data()
-    return self._historical_ohlc</code></pre>
+    warnings.warn(&#39;data is depracted, use ohlc_d instead&#39;,
+                  DeprecationWarning)
+    if self._historical_ohlc[&#39;d&#39;] is None:
+        self._historical_ohlc[&#39;d&#39;] = self._get_data(interval=&#39;d&#39;)
+    return self._historical_ohlc[&#39;d&#39;]</code></pre>
+</details>
+</dd>
+<dt id="marketools.stqscraper.stockquotes.StockQuotes.ohlc_d"><code class="name">var <span class="ident">ohlc_d</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def ohlc_d(self):
+    return self.ohlc(interval=&#39;d&#39;)</code></pre>
+</details>
+</dd>
+<dt id="marketools.stqscraper.stockquotes.StockQuotes.ohlc_m"><code class="name">var <span class="ident">ohlc_m</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def ohlc_m(self):
+    return self.ohlc(interval=&#39;m&#39;)</code></pre>
+</details>
+</dd>
+<dt id="marketools.stqscraper.stockquotes.StockQuotes.ohlc_q"><code class="name">var <span class="ident">ohlc_q</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def ohlc_q(self):
+    return self.ohlc(interval=&#39;q&#39;)</code></pre>
+</details>
+</dd>
+<dt id="marketools.stqscraper.stockquotes.StockQuotes.ohlc_w"><code class="name">var <span class="ident">ohlc_w</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def ohlc_w(self):
+    return self.ohlc(interval=&#39;w&#39;)</code></pre>
+</details>
+</dd>
+<dt id="marketools.stqscraper.stockquotes.StockQuotes.ohlc_y"><code class="name">var <span class="ident">ohlc_y</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def ohlc_y(self):
+    return self.ohlc(interval=&#39;y&#39;)</code></pre>
 </details>
 </dd>
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="marketools.stqscraper.stockquotes.StockQuotes.download_ohlc_from_stooq"><code class="name flex">
-<span>def <span class="ident">download_ohlc_from_stooq</span></span>(<span>self)</span>
+<dt id="marketools.stqscraper.stockquotes.StockQuotes.csv_file_path"><code class="name flex">
+<span>def <span class="ident">csv_file_path</span></span>(<span>self, interval='d')</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -316,14 +474,75 @@ def data(self):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def download_ohlc_from_stooq(self):
-    url = f&#39;http://stooq.com/q/d/l/?i=d&amp;s={self.ticker}&#39;
+<pre><code class="python">def csv_file_path(self, interval=&#39;d&#39;):
+    if get_dwl_storage_status():
+        output = path.join(get_dwl_storage_dir(),
+                           f&#39;{self.ticker}_ohcl_{interval}.csv&#39;)
+    else:
+        output = None
+    return output</code></pre>
+</details>
+</dd>
+<dt id="marketools.stqscraper.stockquotes.StockQuotes.download_ohlc_from_stooq"><code class="name flex">
+<span>def <span class="ident">download_ohlc_from_stooq</span></span>(<span>self, interval='d')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Download CSV file with OHLC data from Stooq.com and reads the data into
+DataFrame. Returns None if daily hits limit for Stooq is exceeded.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>interval</code></strong> :&ensp;<code>str</code></dt>
+<dd>single letter defining the interval for OHLC data:
+d - day (default), w - weekly, m - monthly, q - quarterly,
+y - yearly</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>pandas.DataFrame</code></dt>
+<dd>&nbsp;</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def download_ohlc_from_stooq(self, interval=&#39;d&#39;):
+    &#34;&#34;&#34;
+    Download CSV file with OHLC data from Stooq.com and reads the data into
+    DataFrame. Returns None if daily hits limit for Stooq is exceeded.
+
+    Parameters
+    ----------
+    interval : str
+        single letter defining the interval for OHLC data:
+        d - day (default), w - weekly, m - monthly, q - quarterly,
+        y - yearly
+
+    Returns
+    -------
+    pandas.DataFrame
+    &#34;&#34;&#34;
+    url = f&#39;http://stooq.com/q/d/l/?i={interval}&amp;s={self.ticker}&#39;
     file_path, _ = urlretrieve(url)
     try:
         output = read_ohlcv_from_csv(file_path)
     except ValueError:  # Stooq: Exceeded the daily hits limit
         output = None
     return output</code></pre>
+</details>
+</dd>
+<dt id="marketools.stqscraper.stockquotes.StockQuotes.ohlc"><code class="name flex">
+<span>def <span class="ident">ohlc</span></span>(<span>self, interval='d')</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def ohlc(self, interval=&#39;d&#39;):
+    if self._historical_ohlc[interval] is None:
+        self._historical_ohlc[interval] = self._get_data(interval=interval)
+    return self._historical_ohlc[interval]</code></pre>
 </details>
 </dd>
 </dl>
@@ -352,9 +571,18 @@ def data(self):
 <li>
 <h4><code><a title="marketools.stqscraper.stockquotes.StockQuotes" href="#marketools.stqscraper.stockquotes.StockQuotes">StockQuotes</a></code></h4>
 <ul class="">
+<li><code><a title="marketools.stqscraper.stockquotes.StockQuotes.check_for_update" href="#marketools.stqscraper.stockquotes.StockQuotes.check_for_update">check_for_update</a></code></li>
 <li><code><a title="marketools.stqscraper.stockquotes.StockQuotes.csv_file_path" href="#marketools.stqscraper.stockquotes.StockQuotes.csv_file_path">csv_file_path</a></code></li>
 <li><code><a title="marketools.stqscraper.stockquotes.StockQuotes.data" href="#marketools.stqscraper.stockquotes.StockQuotes.data">data</a></code></li>
 <li><code><a title="marketools.stqscraper.stockquotes.StockQuotes.download_ohlc_from_stooq" href="#marketools.stqscraper.stockquotes.StockQuotes.download_ohlc_from_stooq">download_ohlc_from_stooq</a></code></li>
+<li><code><a title="marketools.stqscraper.stockquotes.StockQuotes.ohlc" href="#marketools.stqscraper.stockquotes.StockQuotes.ohlc">ohlc</a></code></li>
+<li><code><a title="marketools.stqscraper.stockquotes.StockQuotes.ohlc_d" href="#marketools.stqscraper.stockquotes.StockQuotes.ohlc_d">ohlc_d</a></code></li>
+<li><code><a title="marketools.stqscraper.stockquotes.StockQuotes.ohlc_m" href="#marketools.stqscraper.stockquotes.StockQuotes.ohlc_m">ohlc_m</a></code></li>
+<li><code><a title="marketools.stqscraper.stockquotes.StockQuotes.ohlc_q" href="#marketools.stqscraper.stockquotes.StockQuotes.ohlc_q">ohlc_q</a></code></li>
+<li><code><a title="marketools.stqscraper.stockquotes.StockQuotes.ohlc_w" href="#marketools.stqscraper.stockquotes.StockQuotes.ohlc_w">ohlc_w</a></code></li>
+<li><code><a title="marketools.stqscraper.stockquotes.StockQuotes.ohlc_y" href="#marketools.stqscraper.stockquotes.StockQuotes.ohlc_y">ohlc_y</a></code></li>
+<li><code><a title="marketools.stqscraper.stockquotes.StockQuotes.update_hour" href="#marketools.stqscraper.stockquotes.StockQuotes.update_hour">update_hour</a></code></li>
+<li><code><a title="marketools.stqscraper.stockquotes.StockQuotes.update_period" href="#marketools.stqscraper.stockquotes.StockQuotes.update_period">update_period</a></code></li>
 </ul>
 </li>
 </ul>

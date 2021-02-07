@@ -46,14 +46,18 @@ class Stock:
     ticker : str
         ticker of a stock; country code needs to be append after a dot for not
         Polish stocks, e.g, &#39;AAPL.US&#39;
-    ohlc : pandas.DataFrame
+    interval : str
+        single letter defining the interval for OHLC data:
+        d - day (default), w - weekly, m - monthly, q - quarterly, y - yearly
+    _ohlc : pandas.DataFrame
         DataFrame with OHLC prices (open-high-low-close), and volume
-    fundamentals : dict
+    _fundamentals : dict
         dictionary with available fundamental information
     &#34;&#34;&#34;
 
-    def __init__(self, ticker: str):
+    def __init__(self, ticker: str, interval: str = &#39;d&#39;):
         self.ticker = ticker
+        self.interval = interval
         self._ohlc = StockQuotes(ticker)
         self._fundamentals = Fundamentals(ticker)
 
@@ -62,7 +66,7 @@ class Stock:
         &#34;&#34;&#34;
         Returns DataFrame with OHLC prices (open-high-low-close), and volume.
         &#34;&#34;&#34;
-        return self._ohlc.data
+        return self._ohlc.ohlc(interval=self.interval)
 
     @property
     def last_ohlc(self):
@@ -137,9 +141,11 @@ class Stock:
         output = volume.mean()
         return output
 
+    @property
     def heikinashi(self):
         # read from file
-        file_path = os.path.join(get_storage_dir(), f&#39;{self.ticker}_heikinashi.csv&#39;)
+        file_path = os.path.join(get_storage_dir(),
+                                 f&#39;{self.ticker}_heikinashi_{self.interval}.csv&#39;)
         use_storage = get_storage_status()
 
         if use_storage and os.path.exists(file_path):
@@ -186,7 +192,7 @@ if __name__ == &#39;__main__&#39;:
 <dl>
 <dt id="marketools.stock.Stock"><code class="flex name class">
 <span>class <span class="ident">Stock</span></span>
-<span>(</span><span>ticker: str)</span>
+<span>(</span><span>ticker: str, interval: str = 'd')</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Class representing a stock with given ticker.</p>
@@ -195,9 +201,12 @@ if __name__ == &#39;__main__&#39;:
 <dt><strong><code>ticker</code></strong> :&ensp;<code>str</code></dt>
 <dd>ticker of a stock; country code needs to be append after a dot for not
 Polish stocks, e.g, 'AAPL.US'</dd>
-<dt><strong><code>ohlc</code></strong> :&ensp;<code>pandas.DataFrame</code></dt>
+<dt><strong><code>interval</code></strong> :&ensp;<code>str</code></dt>
+<dd>single letter defining the interval for OHLC data:
+d - day (default), w - weekly, m - monthly, q - quarterly, y - yearly</dd>
+<dt><strong><code>_ohlc</code></strong> :&ensp;<code>pandas.DataFrame</code></dt>
 <dd>DataFrame with OHLC prices (open-high-low-close), and volume</dd>
-<dt><strong><code>fundamentals</code></strong> :&ensp;<code>dict</code></dt>
+<dt><strong><code>_fundamentals</code></strong> :&ensp;<code>dict</code></dt>
 <dd>dictionary with available fundamental information</dd>
 </dl></div>
 <details class="source">
@@ -213,14 +222,18 @@ Polish stocks, e.g, 'AAPL.US'</dd>
     ticker : str
         ticker of a stock; country code needs to be append after a dot for not
         Polish stocks, e.g, &#39;AAPL.US&#39;
-    ohlc : pandas.DataFrame
+    interval : str
+        single letter defining the interval for OHLC data:
+        d - day (default), w - weekly, m - monthly, q - quarterly, y - yearly
+    _ohlc : pandas.DataFrame
         DataFrame with OHLC prices (open-high-low-close), and volume
-    fundamentals : dict
+    _fundamentals : dict
         dictionary with available fundamental information
     &#34;&#34;&#34;
 
-    def __init__(self, ticker: str):
+    def __init__(self, ticker: str, interval: str = &#39;d&#39;):
         self.ticker = ticker
+        self.interval = interval
         self._ohlc = StockQuotes(ticker)
         self._fundamentals = Fundamentals(ticker)
 
@@ -229,7 +242,7 @@ Polish stocks, e.g, 'AAPL.US'</dd>
         &#34;&#34;&#34;
         Returns DataFrame with OHLC prices (open-high-low-close), and volume.
         &#34;&#34;&#34;
-        return self._ohlc.data
+        return self._ohlc.ohlc(interval=self.interval)
 
     @property
     def last_ohlc(self):
@@ -304,9 +317,11 @@ Polish stocks, e.g, 'AAPL.US'</dd>
         output = volume.mean()
         return output
 
+    @property
     def heikinashi(self):
         # read from file
-        file_path = os.path.join(get_storage_dir(), f&#39;{self.ticker}_heikinashi.csv&#39;)
+        file_path = os.path.join(get_storage_dir(),
+                                 f&#39;{self.ticker}_heikinashi_{self.interval}.csv&#39;)
         use_storage = get_storage_status()
 
         if use_storage and os.path.exists(file_path):
@@ -380,6 +395,49 @@ def fundamentals(self):
     return self._fundamentals</code></pre>
 </details>
 </dd>
+<dt id="marketools.stock.Stock.heikinashi"><code class="name">var <span class="ident">heikinashi</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def heikinashi(self):
+    # read from file
+    file_path = os.path.join(get_storage_dir(),
+                             f&#39;{self.ticker}_heikinashi_{self.interval}.csv&#39;)
+    use_storage = get_storage_status()
+
+    if use_storage and os.path.exists(file_path):
+        # read csv
+        output = pd.read_csv(file_path,
+                             index_col=&#39;Date&#39;,
+                             parse_dates=[&#39;Date&#39;],
+                             date_parser=lambda x: datetime.strptime(x, &#39;%Y-%m-%d&#39;))
+        output = output.astype(np.float64)
+
+        # check is update needed
+        last_ohlc_date = self.ohlc.index[-1]
+        last_ha_date = output.index[-1]
+
+        if last_ohlc_date &gt; last_ha_date:
+            first_open = (output.loc[last_ha_date, &#39;Open&#39;]
+                          + output.loc[last_ha_date, &#39;Close&#39;]) / 2
+            new_ha = heikinashi(self.ohlc[last_ha_date+timedelta(days=1):],
+                                first_open=first_open)
+            output = pd.concat([output, new_ha])
+            output.to_csv(file_path)
+    else:
+        # calculate Heikin-Ashi
+        output = heikinashi(self.ohlc)
+
+        if use_storage:
+            output.to_csv(file_path)
+
+    return output</code></pre>
+</details>
+</dd>
 <dt id="marketools.stock.Stock.last"><code class="name">var <span class="ident">last</span></code></dt>
 <dd>
 <div class="desc"><p>Returns last price.</p></div>
@@ -420,7 +478,7 @@ def ohlc(self):
     &#34;&#34;&#34;
     Returns DataFrame with OHLC prices (open-high-low-close), and volume.
     &#34;&#34;&#34;
-    return self._ohlc.data</code></pre>
+    return self._ohlc.ohlc(interval=self.interval)</code></pre>
 </details>
 </dd>
 <dt id="marketools.stock.Stock.open"><code class="name">var <span class="ident">open</span></code></dt>
@@ -492,49 +550,6 @@ def volume(self):
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="marketools.stock.Stock.heikinashi"><code class="name flex">
-<span>def <span class="ident">heikinashi</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def heikinashi(self):
-    # read from file
-    file_path = os.path.join(get_storage_dir(), f&#39;{self.ticker}_heikinashi.csv&#39;)
-    use_storage = get_storage_status()
-
-    if use_storage and os.path.exists(file_path):
-        # read csv
-        output = pd.read_csv(file_path,
-                             index_col=&#39;Date&#39;,
-                             parse_dates=[&#39;Date&#39;],
-                             date_parser=lambda x: datetime.strptime(x, &#39;%Y-%m-%d&#39;))
-        output = output.astype(np.float64)
-
-        # check is update needed
-        last_ohlc_date = self.ohlc.index[-1]
-        last_ha_date = output.index[-1]
-
-        if last_ohlc_date &gt; last_ha_date:
-            first_open = (output.loc[last_ha_date, &#39;Open&#39;]
-                          + output.loc[last_ha_date, &#39;Close&#39;]) / 2
-            new_ha = heikinashi(self.ohlc[last_ha_date+timedelta(days=1):],
-                                first_open=first_open)
-            output = pd.concat([output, new_ha])
-            output.to_csv(file_path)
-    else:
-        # calculate Heikin-Ashi
-        output = heikinashi(self.ohlc)
-
-        if use_storage:
-            output.to_csv(file_path)
-
-    return output</code></pre>
-</details>
-</dd>
 <dt id="marketools.stock.Stock.mean_volume"><code class="name flex">
 <span>def <span class="ident">mean_volume</span></span>(<span>self, window: int)</span>
 </code></dt>
