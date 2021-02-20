@@ -2,7 +2,7 @@ import os
 
 
 STORE_DWL_DATA = False
-DWL_DATA_DIR = os.path.join(os.getcwd(), '.marketools_data')
+DWL_DATA_DIR = os.path.join(os.path.expanduser('~'), '.marketools_data')
 
 
 def store_scraped_data():
