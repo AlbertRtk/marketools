@@ -1,8 +1,8 @@
 from .stqscraper.fundamentals import Fundamentals
 from .stqscraper.stockquotes import StockQuotes
 from .stqscraper.scrapers import scrap_summary_table
+from .stqscraper import get_storage_dir, get_storage_status
 from .analysis import heikinashi
-from .__storage import get_storage_dir, get_storage_status
 from datetime import datetime, timedelta
 import pandas as pd
 import numpy as np

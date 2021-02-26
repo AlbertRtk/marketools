@@ -1,4 +1,4 @@
-from . import get_dwl_storage_status, get_dwl_storage_dir
+from . import get_storage_status, get_storage_dir
 from datetime import datetime
 import os
 import csv
