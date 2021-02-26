@@ -30,21 +30,27 @@
 
 
 STORE_DWL_DATA = False
-DWL_DATA_DIR = os.path.join(os.getcwd(), &#39;.marketools_data&#39;)
+DWL_DATA_DIR = os.path.join(os.path.expanduser(&#39;~&#39;), &#39;.marketools_data&#39;)
 
 
-def store_scraped_data():
+def store_data():
+    &#34;&#34;&#34;
+    By default scraped/downloaded data are not stored.
+    This function enables data storage on local machine.
+    &#34;&#34;&#34;
     global STORE_DWL_DATA
     STORE_DWL_DATA = True
     if not os.path.exists(DWL_DATA_DIR):
         os.mkdir(DWL_DATA_DIR)
 
 
-def get_dwl_storage_status():
+def get_storage_status():
+    &#34;&#34;&#34;Returns True is data storage is active.&#34;&#34;&#34;
     return STORE_DWL_DATA
 
 
-def get_dwl_storage_dir():
+def get_storage_dir():
+    &#34;&#34;&#34;Returns storage directory.&#34;&#34;&#34;
     return DWL_DATA_DIR</code></pre>
 </details>
 </section>
@@ -70,42 +76,49 @@ def get_dwl_storage_dir():
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="marketools.stqscraper.get_dwl_storage_dir"><code class="name flex">
-<span>def <span class="ident">get_dwl_storage_dir</span></span>(<span>)</span>
+<dt id="marketools.stqscraper.get_storage_dir"><code class="name flex">
+<span>def <span class="ident">get_storage_dir</span></span>(<span>)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Returns storage directory.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def get_dwl_storage_dir():
+<pre><code class="python">def get_storage_dir():
+    &#34;&#34;&#34;Returns storage directory.&#34;&#34;&#34;
     return DWL_DATA_DIR</code></pre>
 </details>
 </dd>
-<dt id="marketools.stqscraper.get_dwl_storage_status"><code class="name flex">
-<span>def <span class="ident">get_dwl_storage_status</span></span>(<span>)</span>
+<dt id="marketools.stqscraper.get_storage_status"><code class="name flex">
+<span>def <span class="ident">get_storage_status</span></span>(<span>)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Returns True is data storage is active.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def get_dwl_storage_status():
+<pre><code class="python">def get_storage_status():
+    &#34;&#34;&#34;Returns True is data storage is active.&#34;&#34;&#34;
     return STORE_DWL_DATA</code></pre>
 </details>
 </dd>
-<dt id="marketools.stqscraper.store_scraped_data"><code class="name flex">
-<span>def <span class="ident">store_scraped_data</span></span>(<span>)</span>
+<dt id="marketools.stqscraper.store_data"><code class="name flex">
+<span>def <span class="ident">store_data</span></span>(<span>)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>By default scraped/downloaded data are not stored.
+This function enables data storage on local machine.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def store_scraped_data():
+<pre><code class="python">def store_data():
+    &#34;&#34;&#34;
+    By default scraped/downloaded data are not stored.
+    This function enables data storage on local machine.
+    &#34;&#34;&#34;
     global STORE_DWL_DATA
     STORE_DWL_DATA = True
     if not os.path.exists(DWL_DATA_DIR):
@@ -137,9 +150,9 @@ def get_dwl_storage_dir():
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="marketools.stqscraper.get_dwl_storage_dir" href="#marketools.stqscraper.get_dwl_storage_dir">get_dwl_storage_dir</a></code></li>
-<li><code><a title="marketools.stqscraper.get_dwl_storage_status" href="#marketools.stqscraper.get_dwl_storage_status">get_dwl_storage_status</a></code></li>
-<li><code><a title="marketools.stqscraper.store_scraped_data" href="#marketools.stqscraper.store_scraped_data">store_scraped_data</a></code></li>
+<li><code><a title="marketools.stqscraper.get_storage_dir" href="#marketools.stqscraper.get_storage_dir">get_storage_dir</a></code></li>
+<li><code><a title="marketools.stqscraper.get_storage_status" href="#marketools.stqscraper.get_storage_status">get_storage_status</a></code></li>
+<li><code><a title="marketools.stqscraper.store_data" href="#marketools.stqscraper.store_data">store_data</a></code></li>
 </ul>
 </li>
 </ul>
