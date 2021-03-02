@@ -20,9 +20,9 @@ class Fundamentals(dict):
         """
 
         update_required = True  # assuming that update will be required
-        file_path = os.path.join(get_dwl_storage_dir(), f'{self.ticker}_indicators.csv')
+        file_path = os.path.join(get_storage_dir(), f'{self.ticker}_indicators.csv')
 
-        if get_dwl_storage_status() and os.path.exists(file_path):
+        if get_storage_status() and os.path.exists(file_path):
             timestamp_now = datetime.timestamp(datetime.now())
             timestamp_up = os.path.getatime(file_path)  # CSV file modification time
 
@@ -43,7 +43,7 @@ class Fundamentals(dict):
         if update_required:
             # data older than 24 hours - update
             self.update(scrap_summary_table(self.ticker))
-            if get_dwl_storage_status():
+            if get_storage_status():
                 with open(file_path, 'w') as f:
                     writer = csv.DictWriter(f, self.keys())
                     writer.writeheader()
